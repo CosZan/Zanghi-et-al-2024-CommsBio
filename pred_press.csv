@@ -1,0 +1,17 @@
+Species,N,Behaviour,Attack rate ,Rank,Attack %
+A pulcher,17802,tot_time,0.025,4,7.65
+C frenata,28650,tot_time,0.182,1,89.25
+H malabaricus ,774,tot_time,0.023,5,0.31
+H taenius,638,tot_time,0.025,3,0.27
+A hartii,7683,tot_time,0.016,6,2.13
+A bimaculatus,148,tot_time,0.047,2,0.12
+R quelen,60,tot_time,0.000,8,0.00
+R dientonito,3396,tot_time,0.005,7,0.27
+A pulcher,446,attacks,,,
+C frenata,5205,attacks,,,
+H malabaricus ,18,attacks,,,
+H taenius,16,attacks,,,
+A hartii,124,attacks,,,
+A bimaculatus,7,attacks,,,
+R quelen,0,attacks,,,
+R dientonito,16,attacks,,,

@@ -1,0 +1,3558 @@
+###############################################################################
+### Full analysis of data from the 2022 Trini Fieldwork as per August 2023 ###
+## PCA 
+## Multivariate analysis GLLVM 
+## Multivariate analysis CCA 
+## Behavioural analysis GLMM 
+## Guppy metrics 
+## Data overview 
+#  sediment type
+#  plots
+#  Quarry presence
+
+
+rm(list=ls())  ### clear memory
+
+## packages required:
+library(glmmTMB)
+library(gllvm)
+library(permute)
+library(lattice)
+library(vegan)
+library(ggplot2)
+library(GGally)
+library(multcomp)
+library(plotrix)
+library(dplyr)
+library(ggeffects)
+library(sjPlot)
+library(viridis)
+library(boot)
+source("C:/Program Files/R/R-3.6.1/library/glmm_funs.R")  # it's like a package but it comes in a script!
+library(overdisp)                                         # for negative binomal GLMM assumptions check
+library(DHARMa)
+library(stats4)
+library(bbmle)                                            # for AICtab
+library(MuMIn)                                            # for r.squaredGLMM(model) function
+library(sos) 
+library(FactoMineR)
+library(factoextra)
+library(RColorBrewer)
+library(ggrepel)
+library(ggpubr)
+library(effectsize)
+library(lmerTest)
+library(broom.mixed)
+library(rstatix)
+
+#findFn("prcomp")
+#packageVersion("MuMIn")
+
+setwd("C:/Users/so19066/OneDrive - University of Bristol/Desktop/Holy Folder/22. Trinidad 2022/Stats/Complete analysis")
+
+###################################################################
+############################### PCA ###############################
+###################################################################
+# read in full dataset of LOG transformed env varibales 
+# + all behavioural variables for both treatment & control
+data <- read.csv("For_models.csv", header = TRUE, sep = ",")
+data_prey <- data[data$Treatment == "prey", ]
+data_cont <- data[data$Treatment == "control", ]
+
+
+# run a PC analysis on the columns 8 to 15
+PCA <- prcomp(data[,c(8:15)], center = TRUE,scale. = TRUE)
+PCA
+str(PCA)
+s <- summary(PCA)
+s
+# Standard deviation = eigenvalues, good if >1
+# Importance of components:
+#                           PC1    PC2    PC3    PC4    PC5    PC6     PC7     PC8
+# Standard deviation     1.3453 1.1282 1.0331 0.9724 0.9611 0.9531 0.81580 0.63796
+# Proportion of Variance 0.2262 0.1591 0.1334 0.1182 0.1155 0.1135 0.08319 0.05087
+# Cumulative Proportion  0.2262 0.3853 0.5187 0.6369 0.7524 0.8659 0.94913 1.00000
+
+plot(PCA) # plot eigenvalues
+
+fviz_pca_var(PCA, col.var="contrib",
+             gradient.cols = c("#84A59E", "#FFCCB1", "#CFD7EE"),
+             repel = TRUE, # Avoid text overlapping
+             axes = c(2, 3), # choose PCs to plot
+             axes.fontsize = 12, # set axes label font size
+             labels.fontsize = 12, # set variable labels font size
+             geom.ind = "none" # remove circle and grid lines
+)
+
+#biplot with env variables only
+{biplot(PCA, col=c('white', 'dark green'), cex=c(1.3, 1.3),  
+       xlim=c(-.3, .3), 
+       ylim=c(-.3, .2),
+       expand=1.4,
+       borderWidth = 0.8,
+       borderColour = "black")
+box()
+abline(v = 0, h = 0, lty = 2, col = "grey25")
+mtext((text = "PC 1 rotations"), 
+      side = 3,
+      cex = 1.2,
+      font = 2,
+      family = "sans", col = "gray10", line = 2) 
+mtext((text = "PC 2 rotations"), 
+      side = 4,
+      cex = 1.2,
+      font = 2,
+      family = "sans", col = "gray10",  line = 2, las = 3)
+mtext((text = "(22.6% of variation)"), 
+      side = 1,
+      cex = 1.2,  line = 2)
+mtext((text = "(15.9% of variation)"), side = 2,cex = 1.2,  line = 2)
+}
+
+PCA
+# how each env variable loads onto each PC. Anything >|0.353| is good.
+#standard deviations (1, .., p=8):
+#  [1] 1.3452651 1.1281986 1.0330840 0.9724017 0.9610880 0.9530962 0.8157992 0.6379586
+
+#Rotation (n x k) = (8 x 8):
+#                           PC1         PC2        PC3         PC4          PC5         PC6
+#Log_Flow_ms         0.12551472 -0.71961783  0.1079937  0.30385824 -0.037310343  0.11959411
+#Depth_cm            0.17807870  0.27825710  0.3752231  0.59261531  0.253791489 -0.57491935
+#Width_m             0.43618420  0.09606279 -0.2558668 -0.48982836 -0.138275718 -0.50082265
+#LOG_Turb_mean_NTU   0.09996797 -0.03002202 -0.7810359  0.51657872 -0.130567961 -0.03037254
+#LOG_DO_mgL          0.32437946 -0.43801301 -0.1260218 -0.19067761  0.658978958 -0.14734162
+#LOG_Temp_mean_C     0.30231082  0.44271702 -0.2194502  0.07866910  0.395788623  0.45273304
+#LOG_Light_mean_lux  0.50769400  0.06852842  0.3104248  0.02396967  0.003789919  0.42024228
+#LOG_Canopy_cover   -0.54581747  0.04520936 -0.1079661 -0.08105887  0.554178119 -0.01178286
+#                           PC7         PC8
+#Log_Flow_ms        -0.47043589 -0.35411726
+#Depth_cm           -0.03788091 -0.04998339
+#Width_m            -0.19712983 -0.43163870
+#LOG_Turb_mean_NTU   0.29462165 -0.08638333
+#LOG_DO_mgL          0.23238511  0.37512329
+#LOG_Temp_mean_C    -0.54312333  0.04078965
+#LOG_Light_mean_lux  0.53820096 -0.41753362
+#LOG_Canopy_cover    0.11378473 -0.60134265
+
+loadings
+sqrt(1/ncol(data[,c(8:15)])) # cutoff for 'important' loadings
+
+
+str(PCA)
+PCA_data <- PCA$x   # get the specific PC values for each sampling event
+
+write.csv(PCA_data, "pca_data.csv")
+
+### NEXT STEP: Use PC values in further analysis instead of the raw data,
+#   this way each model component is fully independent as there are no 
+#   correlations between principal components + you reduce the number of 
+#   model components from a potential 8 to 3 - simpler models are best.
+
+###################################################################
+################### Multivariate analysis GLLVM ###################
+###################################################################
+
+# the data_full frame has been split into different sheets to focus on 
+# species P/A data (y),  the Principal components (X2) and/or the original 
+# (LOG transformed) env variables (X1)
+
+y  <- read.csv("spp.csv", header = TRUE, sep = ",")
+X1 <- read.csv("env.csv", header = TRUE, sep = ",")
+X2 <- read.csv("pca_data.csv", header = TRUE, sep = ",")
+
+# run model with raw (log transformed) environmental variables
+fit_env <- gllvm(y, X1, TR=NULL, family = "binomial", num.lv= 8, starting.val= 'zero',
+                     + formula ~ LOG_Flow_ms + Depth_cm + Width_m + LOG_Turb_mean_NTU + LOG_DO_mgL + Log_Flow_ms + LOG_Light_mean_lux + LOG_Canopy_Cover)
+par(mfcol = c(2, 3))
+plot(fit_env)
+par(mfcol = c(1, 1))
+
+summary(fit_env)
+### here reporting ONLY significant interactions:
+
+# Coefficients predictors:
+#                                           Estimate Std. Error  z value Pr(>|z|)
+# Log_Flow_ms:Anablepsoides_hartii        -1.002e+02  1.774e-01 -564.661  < 2e-16 ***
+# Log_Flow_ms:Rhamdia_quelen               1.599e+01  3.800e+00    4.208 2.57e-05 ***
+# Log_Flow_ms:Roeboides_dientonito        -1.787e+01  1.276e-01 -140.080  < 2e-16 ***
+# Depth_cm:Andinoacara_pulcher            -2.163e-02  1.032e-02   -2.096  0.03607 *
+# Depth_cm:Hemibrycon_taeniurus            2.282e-02  1.038e-02    2.199  0.02787 * 
+# Depth_cm:Rhamdia_quelen                  3.943e-02  1.964e-02    2.008  0.04465 *
+# Width_m:Andinoacara_pulcher              1.367e-01  5.267e-02    2.596  0.00943 ** 
+# Width_m:Crenicichla_frenata              1.556e-01  5.265e-02    2.956  0.00312 ** 
+# Width_m:Anablepsoides_hartii            -3.167e-01  1.238e-01   -2.558  0.01052 *
+# LOG_Turb_mean_NTU:Anablepsoides_hartii   3.574e+00  1.205e+00    2.967  0.00301 ** 
+# LOG_Turb_mean_NTU:Astyanax_bimaculatus  -1.870e+00  7.985e-01   -2.342  0.01917 *
+# LOG_DO_mgL:Crenicichla_frenata          -7.789e+00  3.179e+00   -2.450  0.01427 *  
+# LOG_DO_mgL:Hoplias_malabaricus          -9.024e+00  3.246e+00   -2.780  0.00543 **
+# LOG_Temp_mean_C:Andinoacara_pulcher      3.102e+01  9.817e+00    3.160  0.00158 ** 
+# LOG_Temp_mean_C:Crenicichla_frenata      2.730e+01  9.150e+00    2.983  0.00285 ** 
+# LOG_Temp_mean_C:Hoplias_malabaricus      5.144e+01  2.303e+00   22.339  < 2e-16 ***
+# LOG_Temp_mean_C:Anablepsoides_hartii    -9.644e+01  2.647e+00  -36.441  < 2e-16 ***
+# LOG_Temp_mean_C:Rhamdia_quelen           5.907e+01  2.396e+00   24.654  < 2e-16 ***
+# LOG_Temp_mean_C:Roeboides_dientonito     2.131e+01  2.134e+00    9.986  < 2e-16 ***
+# LOG_Light_mean_lux:Crenicichla_frenata   5.474e-01  2.790e-01    1.962  0.04974 *
+# LOG_Light_mean_lux:Hemibrycon_taeniurus -5.355e-01  2.731e-01   -1.961  0.04992 *
+# LOG_Canopy_cover:Crenicichla_frenata     1.120e+00  4.314e-01    2.597  0.00940 ** 
+# LOG_Canopy_cover:Hemibrycon_taeniurus   -8.234e-01  3.963e-01   -2.078  0.03773 * 
+#
+
+### coefficient plot
+
+par(mfcol = c(2, 4))
+
+# coefplot = estimated coefficients for predictors and their confidence intervals. 
+# Ticks represent the estimates of coefficients of the env variable in focus and their 95% confidence intervals (lines) for the
+# model described above. The lines colored in grey denote intervals containing 0, meaning that there is a lack of association 
+# between the species and the env variable in focus.
+
+# 1=LOG_Flow_ms, 2=Depth_cm, 3=Width_m, 4= LOG_Turb_mean_NTU, 5=LOG_DO_mgL, 6=LOG_Temp_mean_C, 7=LOG_Light_mean_lux, 8=LOG_Canopy_Cover
+
+coefplot(
+   fit_env,               #gllvm model
+   y.label = TRUE,        #logical, if TRUE (default) colnames of y with respect to coefficients are added to plot.
+   which.Xcoef = 8,       #vector indicating which covariate coefficients will be plotted. Can be vector of covariate names or numbers. Default is NULL when all covariate coefficients are plotted (1:2 for covariate 1 and 2)
+   order = TRUE,          #logical, whether or not coefficients are ordered, defaults to TRUE.
+   cex.ylab = 1.5,        #the magnification to be used for axis annotation relative to the current setting of cex.
+   mfrow = NULL,          #same as mfrow in par. If NULL (default) it is determined automatically.
+   mar = c(6, 15, 2, 1),  #vector of length 4, which defines the margin sizes: c(bottom, left, top, right). Defaults to c(4,5,2,1).
+   xlim.list = NULL       #list of vectors with length of two to define the intervals for an x axis in each covariate plot. Defaults to NULL when the interval is defined by the range of point estimates and confidence intervals
+)
+
+par(mfcol = c(1, 1))
+
+# run model with Principal Components as latent variables
+
+
+fit_pca <- gllvm(y, X2, TR=NULL, family = "binomial", num.lv= 3, starting.val= 'zero',
+                 + formula ~ PC1 + PC2 + PC3)
+
+par(mfcol = c(2, 3))
+plot(fit_pca, mar = c(6, 6, 6, 6))
+par(mfcol = c(1, 1))
+
+summary(fit_pca)
+### here reporting ONLY significant interactions:
+
+# Coefficients predictors:
+#                           Estimate Std. Error  z value Pr(>|z|)
+# PC1:Anablepsoides_hartii -0.751035   0.207066  -3.627 0.000287 ***
+# PC2:Crenicichla_frenata   0.336881   0.121034   2.783 0.005380 ** 
+# PC2:Hoplias_malabaricus   0.585351   0.226548   2.584 0.009772 **
+# PC2:Roeboides_dientonito  0.576763   0.263463   2.189 0.028585 * 
+# PC3:Rhamdia_quelen        0.539293   0.275124   1.960 0.049975 *  
+# PC3:Roeboides_dientonito -0.442735   0.191501  -2.312 0.020782 *
+
+### coefficient plot
+# 1=PC1, 2=PC2, 3=PC3 but also:
+# PC1= width + Light + Canopy cover
+# PC2= Flow + DO + Temp
+# PC3= Depth + Turb
+
+par(mfcol = c(1, 3))
+coefplot(
+   fit_pca,               #gllvm model
+   y.label = TRUE,        #logical, if TRUE (default) colnames of y with respect to coefficients are added to plot.
+   which.Xcoef = 3,       #vector indicating which covariate coefficients will be plotted. Can be vector of covariate names or numbers. Default is NULL when all covariate coefficients are plotted (1:2 for covariate 1 and 2)
+   order = TRUE,          #logical, whether or not coefficients are ordered, defaults to TRUE.
+   cex.ylab = 1.5,        #the magnification to be used for axis annotation relative to the current setting of cex.
+   mfrow = NULL,          #same as mfrow in par. If NULL (default) it is determined automatically.
+   mar = c(6, 15, 2, 1),  #vector of length 4, which defines the margin sizes: c(bottom, left, top, right). Defaults to c(4,5,2,1).
+   xlim.list = NULL       #list of vectors with length of two to define the intervals for an x axis in each covariate plot. Defaults to NULL when the interval is defined by the range of point estimates and confidence intervals
+)
+
+par(mfcol = c(1, 1))
+
+###################################################################
+#################### Multivariate analysis CCA ####################
+###################################################################
+
+cca <- cca(y ~., X1)
+cca
+# Call: cca(formula = y ~ Log_Flow_ms + Depth_cm + Width_m + LOG_Turb_mean_NTU + LOG_DO_mgL + LOG_Temp_mean_C +
+#            LOG_Light_mean_lux + LOG_Canopy_cover, data = X1)
+
+#              Inertia Proportion Rank
+#Total          2.5895     1.0000     
+#Constrained    0.4557     0.1760    7   # 17.6% of variance is explained by the environmental variables considered
+#Unconstrained  2.1338     0.8240    7
+#Inertia is scaled Chi-square 
+
+# Eigenvalues for constrained axes:
+#    CCA1    CCA2    CCA3    CCA4    CCA5    CCA6    CCA7 
+# 0.19118 0.12145 0.07616 0.04490 0.01284 0.00731 0.00185 
+
+# Eigenvalues for unconstrained axes:
+#    CA1    CA2    CA3    CA4    CA5    CA6    CA7 
+# 0.7578 0.4109 0.2866 0.2185 0.1917 0.1555 0.1128 
+
+summary(cca)
+# Importance of components:
+#                          CCA1   CCA2    CCA3    CCA4     CCA5     CCA6      CCA7    
+# Eigenvalue            0.19118 0.1214 0.07616 0.04490 0.012837 0.007315 0.0018493 
+# Proportion Explained  0.07383 0.0469 0.02941 0.01734 0.004957 0.002825 0.0007142 
+# Cumulative Proportion 0.07383 0.1207 0.15014 0.16748 0.172437 0.175262 0.1759765
+
+# Biplot scores for constraining variables
+
+#                       CCA1    CCA2     CCA3    CCA4     CCA5     CCA6
+# Log_Flow_ms         0.3618 -0.6718  0.16963  0.1515 -0.16377  0.43663
+# Depth_cm            0.1841 -0.3844  0.11857 -0.4094 -0.34166 -0.67702
+# Width_m             0.4329  0.5175 -0.28761 -0.3626 -0.24354 -0.06153
+# LOG_Turb_mean_NTU  -0.2565  0.3401  0.48027 -0.5593 -0.35973  0.35163
+# LOG_DO_mgL          0.1095 -0.2611 -0.68536 -0.1731 -0.29318  0.51150
+# LOG_Temp_mean_C     0.5370  0.3950  0.29547 -0.3653  0.29335  0.08250
+# LOG_Light_mean_lux  0.3014  0.1085 -0.07617  0.1544 -0.55619  0.01540
+# LOG_Canopy_cover   -0.2185  0.2209  0.04897  0.5564 -0.01024 -0.03180
+
+anova.cca(cca, by="margin", permutations = how(nperm=100000)) # = by="terms"
+# Permutation test for cca under reduced model
+# Marginal effects of terms
+# Permutation: free
+# Number of permutations: 1e+05  (100.000)
+
+# Model: cca(formula = y ~ Log_Flow_ms + Depth_cm + Width_m + LOG_Turb_mean_NTU + LOG_DO_mgL + LOG_Temp_mean_C + LOG_Light_mean_lux + LOG_Canopy_cover, data = X1)
+# Df ChiSquare      F  Pr(>F)   
+# Log_Flow_ms         1   0.09732 4.4239 0.00209 **
+# Depth_cm            1   0.03484 1.5840 0.14981   
+# Width_m             1   0.07533 3.4245 0.00623 **
+# LOG_Turb_mean_NTU   1   0.06917 3.1444 0.01018 * 
+# LOG_DO_mgL          1   0.04751 2.1599 0.05505 . 
+# LOG_Temp_mean_C     1   0.09493 4.3154 0.00150 **
+# LOG_Light_mean_lux  1   0.02666 1.2119 0.27882   
+# LOG_Canopy_cover    1   0.03190 1.4503 0.18363   
+# Residual           97   2.13378 
+
+# basic biplot
+plot(cca, 
+     xlim=c(-.3, .3), 
+     ylim=c(-.6, .6))
+    
+     mtext((text = "(7.3% of variation)"), 
+           side = 1,
+           cex = 1.2,  line = 2)
+     mtext((text = "(4.6% of variation)"), side = 2,cex = 1.2,  line = 2)
+
+     # Place CCA values in dataframes for plotting - Code adapted from Martin Genner
+     
+     CCA_Sites <- cca$CCA$wa
+     CCA_Sites <- cbind(CCA_Sites, y[1:1])
+     CCA_Sites
+     
+     CCA_Env <- read.csv("CCA_Env.csv", header = TRUE, sep = ",")
+   
+     CCA_Species <- read.csv("CCA_Species.csv", header = TRUE, sep = ",")
+
+     # The plot of species values
+     
+     CCA_SpeciesPlot <- ggscatter(CCA_Species, x = "CCA1", y = "CCA2",
+                                  ellipse = FALSE, ellipse.type = "convex", mean.point = FALSE,
+                                  star.plot = FALSE) +
+       scale_x_continuous(limits = c(-4, 4), breaks =c(-4,-2,0,2,4)) +
+       scale_y_continuous(limits = c(-4, 4), breaks =c(-4,-2,0,2,4)) +
+       geom_label_repel(aes(label = Species),
+                        max.overlaps = Inf,
+                        segment.color = 'grey',point.padding = 0.3) +
+       geom_hline(yintercept=0, linetype="dashed", color = "blue") +
+       geom_vline(xintercept=0, linetype="dashed", color = "blue") +
+       xlab("CCA Axis 1 (7.3% of variation)") + ylab("CCA Axis 2 (4.6% of variation)") 
+     CCA_SpeciesPlot
+     
+     # The plot of site values
+     
+     CCA_SitePlot <- ggscatter(CCA_Sites, x = "CCA1", y = "CCA2", #color = "River",
+                               ellipse = FALSE, ellipse.type = "convex", mean.point = TRUE,
+                               star.plot = TRUE) +
+       geom_hline(yintercept=0, linetype="dashed", color = "blue") +
+       geom_vline(xintercept=0, linetype="dashed", color = "blue") +
+       scale_x_continuous(limits = c(-5, 5), breaks =c(-5,-2.5,0,2.5,5)) +
+       scale_y_continuous(limits = c(-5, 5), breaks =c(-5,-2.5,0,2.5,5)) +
+       xlab("CCA Axis 1 (7.3% of variation)") + ylab("CCA Axis 2 (4.6% of variation)") 
+     CCA_SitePlot
+     
+     #The plot of environmental values
+     
+     CCA_EnvPlot <- ggscatter(CCA_Env, x = "CCA1", y = "CCA2",
+                              ellipse = FALSE, ellipse.type = "convex", mean.point = FALSE,
+                              star.plot = FALSE) +
+       scale_x_continuous(limits = c(-1, 1), breaks =c(-1,-0.5,0,0.5,1)) +
+       scale_y_continuous(limits = c(-1, 1), breaks =c(-1,-0.5,0,0.5,1)) +
+       geom_label_repel(aes(label = Env),
+                        max.overlaps = Inf, point.padding = 0,
+                        label.size = NA,segment.color = 'transparent') +
+       geom_hline(yintercept=0, linetype="dashed", color = "blue") +
+       geom_vline(xintercept=0, linetype="dashed", color = "blue") +
+       geom_segment(aes(x = 0,
+                        y = 0,
+                        xend = CCA1,
+                        yend = CCA2),colour='grey',
+                    arrow = arrow(length = unit(0.0, "cm"))) +
+       xlab("CCA Axis 1 (7.3% of variation)") + ylab("CCA Axis 2 (4.6% of variation)") 
+     CCA_EnvPlot
+     
+     #The combined figure of all three (export as 10 height x 12 width, note this will need to be edited to move the legend)
+     
+     Combined_Figure1 <- ggarrange(CCA_SpeciesPlot,CCA_SitePlot,CCA_EnvPlot, common.legend = TRUE, 
+                                   labels = c("(a)", "(b)", "(c)"),
+                                   ncol = 2, nrow = 2, legend="right")
+     Combined_Figure1 
+
+     
+     
+###################################################################
+#################### Behavioural analysis GLMM ####################
+###################################################################
+
+     data <- read.csv("For_models.csv", header = T, sep = ",")
+     head(data)
+
+# pca data instead of "raw" env data
+###  x= predictors (fixed effects):
+###  PC1, PC2, PC3, PC1*PC2, PC1*PC3, PC2*PC3, Time, Replicate, Control_first, (Treatment) 
+     
+### Random effects: (1| River/Location_Code)
+
+### Remember:     
+     # PC1= width + Light + Canopy cover
+     # PC2= Flow + DO + Temp
+     # PC3= Depth + Turb
+     
+### Models 1 Presence/Absence
+     # Full model
+     m1 <- glmmTMB(totPredPA ~ PC1 + PC2 + PC3 + Time + Replicate + Control_first + Treatment 
+                   + (1| River/Location_Code), family = binomial, data = data)
+
+     m1 <- glmmTMB(totPredPA ~ PC2*PC3 + PC1 + PC2 + PC3 + PC1*PC2 + PC1*PC3 + PC2*PC3 + Time + Replicate + Control_first + Treatment 
+                   + (1| River/Location_Code), family = binomial, data = data)
+     plot(ggpredict(m1, terms = ~ PC2*PC3))
+    
+     
+     library(effects)
+     plot(Effect(c("PC2","PC3"), m1),lines = list(multiline= TRUE),confint = list(style = "auto"), main= FALSE, 
+          axes = list(grid = TRUE))
+  
+     
+     simulationOutput <- simulateResiduals(fittedModel = m1, re.form = NULL)
+     testDispersion(simulationOutput)
+     summary(m1)                
+     drop1(m1, test="Chisq")
+    
+     # the following plot shows the marginal effects and predictions of the GLMM 
+     plot(ggpredict(m1, terms = c("PC1", "PC2", "PC3")))
+
+     par(mfcol = c(4, 4)) # panel for models dispersion
+     
+     # break it down and add interactions
+    { #1
+     m1a <- glmmTMB(totPredPA ~ 
+                       (1| River/Location_Code), family = binomial, data = data)
+     
+     simulationOutput <- simulateResiduals(fittedModel = m1a, re.form = NULL)
+     testDispersion(simulationOutput)
+     summary(m1a)                
+   
+     #2
+     m1b <- glmmTMB(totPredPA ~ PC1  
+                    + (1| River/Location_Code), family = binomial, data = data)
+     
+     simulationOutput <- simulateResiduals(fittedModel = m1b, re.form = NULL)
+     testDispersion(simulationOutput)
+     summary(m1b)
+     
+     #3
+     m1c <- glmmTMB(totPredPA ~ PC2  
+                    + (1| River/Location_Code), family = binomial, data = data)
+     
+     simulationOutput <- simulateResiduals(fittedModel = m1c, re.form = NULL)
+     testDispersion(simulationOutput)
+     summary(m1c)
+     
+     #4
+     m1d <- glmmTMB(totPredPA ~ PC3  
+                    + (1| River/Location_Code), family = binomial, data = data)
+     
+     simulationOutput <- simulateResiduals(fittedModel = m1d, re.form = NULL)
+     testDispersion(simulationOutput)
+     summary(m1d)
+     
+     #5
+     m1e <- glmmTMB(totPredPA ~ PC1*PC2  
+                    + (1| River/Location_Code), family = binomial, data = data)
+     
+     simulationOutput <- simulateResiduals(fittedModel = m1e, re.form = NULL)
+     testDispersion(simulationOutput)
+     summary(m1e)
+    # plot(ggpredict(m1e, terms = ~ PC1*PC2))
+    # plot(Effect(c("PC1","PC2"), m1e),lines = list(multiline= TRUE),confint = list(style = "auto"), main= FALSE, 
+    #      axes = list(grid = TRUE))
+     
+     #6
+     m1f <- glmmTMB(totPredPA ~ PC1*PC3  
+                    + (1| River/Location_Code), family = binomial, data = data)
+     simulationOutput <- simulateResiduals(fittedModel = m1f, re.form = NULL)
+     testDispersion(simulationOutput)
+     summary(m1f)
+    # plot(ggpredict(m1f, terms = ~ PC1*PC3))
+    # plot(Effect(c("PC1","PC3"), m1f),lines = list(multiline= TRUE),confint = list(style = "auto"), main= FALSE, 
+    #      axes = list(grid = TRUE))
+     
+     #7
+     m1g <- glmmTMB(totPredPA ~ PC2*PC3  
+                    + (1| River/Location_Code), family = binomial, data = data)
+     
+     simulationOutput <- simulateResiduals(fittedModel = m1g, re.form = NULL)
+     testDispersion(simulationOutput)
+     summary(m1g)
+     
+   #  plot(ggpredict(m1g, terms = ~ PC2*PC3))
+     
+   #  plot(Effect(c("PC2","PC3"), m1g),lines = list(multiline= TRUE),confint = list(style = "auto"), main= FALSE, 
+   #       axes = list(grid = TRUE))
+     
+     
+     #8
+     m1h <- glmmTMB(totPredPA ~ Time  
+                    + (1| River/Location_Code), family = binomial, data = data)
+     simulationOutput <- simulateResiduals(fittedModel = m1h, re.form = NULL)
+     testDispersion(simulationOutput)
+     summary(m1h)
+     
+     #9
+     m1i <- glmmTMB(totPredPA ~ Replicate  
+                    + (1| River/Location_Code), family = binomial, data = data)
+     simulationOutput <- simulateResiduals(fittedModel = m1i, re.form = NULL)
+     testDispersion(simulationOutput)
+     summary(m1i)
+     
+     #10
+     m1l <- glmmTMB(totPredPA ~ Control_first 
+                    + (1| River/Location_Code), family = binomial, data = data)
+     simulationOutput <- simulateResiduals(fittedModel = m1l, re.form = NULL)
+     testDispersion(simulationOutput)
+     summary(m1l)
+     
+     #11
+     m1m <- glmmTMB(totPredPA ~ Treatment 
+                    + (1| River/Location_Code), family = binomial, data = data)
+     
+     simulationOutput <- simulateResiduals(fittedModel = m1m, re.form = NULL)
+     testDispersion(simulationOutput)
+     summary(m1m)
+     
+     #12
+     m1n <- glmmTMB(totPredPA ~ PC1 + PC2 
+                    + (1| River/Location_Code), family = binomial, data = data)
+     
+     simulationOutput <- simulateResiduals(fittedModel = m1n, re.form = NULL)
+     testDispersion(simulationOutput)
+     summary(m1n)
+     
+     #13
+     m1o <- glmmTMB(totPredPA ~ PC1 + PC3 
+                    + (1| River/Location_Code), family = binomial, data = data)
+     
+     simulationOutput <- simulateResiduals(fittedModel = m1o, re.form = NULL)
+     testDispersion(simulationOutput)
+     summary(m1o)    
+  
+     #14
+     m1p <- glmmTMB(totPredPA ~ PC2 + PC3 
+                    + (1| River/Location_Code), family = binomial, data = data)
+     
+     simulationOutput <- simulateResiduals(fittedModel = m1p, re.form = NULL)
+     testDispersion(simulationOutput)
+     testDispersion(simulationOutput)
+     summary(m1p) 
+    # plot(ggpredict(m1p, terms = ~ PC2+PC3))
+     
+     }
+ ICtab( m1a, m1b, m1c, m1d , m1e , m1f, m1g , m1h , m1i, m1l, m1m, m1n, m1o,m1p, type=c("AICc"))
+
+ # PREY ONLY - underdispersion issue resolved by simplifying random effects (/Location_site) removed
+ { #1
+   m1a <- glmmTMB(totPredPA ~ 
+                    (1|River), family = binomial, data = data_prey)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1a, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1a) 
+
+
+   #2
+   m1b <- glmmTMB(totPredPA ~ PC1  
+                  + (1|River), family = binomial, data = data_prey)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1b, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1b)
+
+   #3
+   m1c <- glmmTMB(totPredPA ~ PC2  
+                  + (1|River), family = binomial,data = data_prey)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1c, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1c)
+
+   #4
+   m1d <- glmmTMB(totPredPA ~ PC3  
+                  + (1|River), family = binomial, data = data_prey)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1d, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1d)
+   
+   #5
+   m1e <- glmmTMB(totPredPA ~ PC1*PC2  
+                  + (1|River), family = binomial, data = data_prey)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1e, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1e)
+  # plot(ggpredict(m1e, terms = ~ PC1*PC2))
+  # plot(Effect(c("PC1","PC2"), m1e),lines = list(multiline= TRUE),confint = list(style = "auto"), main= FALSE, 
+  #      axes = list(grid = TRUE))
+   
+   #6
+   m1f <- glmmTMB(totPredPA ~ PC1*PC3  
+                  + (1|River), family = binomial, data = data_prey)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1f, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1f)
+  # plot(ggpredict(m1f, terms = ~ PC1*PC3))
+  # plot(Effect(c("PC1","PC3"), m1f),lines = list(multiline= TRUE),confint = list(style = "auto"), main= FALSE, 
+  #      axes = list(grid = TRUE))
+   
+   #7
+   m1g <- glmmTMB(totPredPA ~ PC2*PC3  
+                  + (1|River), family = binomial,data = data_prey)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1g, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1g)
+   
+ #  plot(Effect(c("PC2","PC3"), m1g),lines = list(multiline= TRUE),confint = list(style = "auto"), main= FALSE, 
+ #       axes = list(grid = TRUE))
+   
+   #8
+   m1h <- glmmTMB(totPredPA ~ Time  
+                  + (1|River), family = binomial, data = data_prey)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1h, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1h)
+
+   
+   #9
+   m1i <- glmmTMB(totPredPA ~ Replicate  
+                  + (1|River), family = binomial, data = data_prey)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1i, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1i)
+
+   
+   #10
+   m1l <- glmmTMB(totPredPA ~ Control_first 
+                  + (1|River), family = binomial, data = data_prey)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1l, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1l)
+  
+   #12 
+   m1n <- glmmTMB(totPredPA ~ PC1 + PC2 
+                  + (1|River), family = binomial, data = data_prey)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1n, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1n)
+   
+   #13
+   m1o <- glmmTMB(totPredPA ~ PC1 + PC3 
+                  + (1|River), family = binomial, data = data_prey)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1o, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1o) 
+ 
+   #14
+   m1p <- glmmTMB(totPredPA ~ PC2 + PC3 
+                  + (1|River), family = binomial, data = data_prey)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1p, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1p) 
+  # plot(ggpredict(m1p, terms = ~ PC2+PC3))
+
+ }
+ ICtab( m1a, m1b, m1c, m1d , m1e , m1f, m1g , m1h , m1i, m1l, m1n, m1o,m1p, type=c("AICc"))
+
+ 
+# CONTROL ONLY
+ { #1
+   m1a <- glmmTMB(totPredPA ~ 
+                    (1| River/Location_Code), family = binomial, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1a, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1a)                
+   
+   #2
+   m1b <- glmmTMB(totPredPA ~ PC1  
+                  + (1| River/Location_Code), family = binomial, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1b, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1b)
+   
+   #3
+   m1c <- glmmTMB(totPredPA ~ PC2  
+                  + (1| River/Location_Code), family = binomial, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1c, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1c)
+   
+   #4
+   m1d <- glmmTMB(totPredPA ~ PC3  
+                  + (1| River/Location_Code), family = binomial, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1d, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1d)
+   
+   #5
+   m1e <- glmmTMB(totPredPA ~ PC1*PC2  
+                  + (1| River/Location_Code), family = binomial, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1e, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1e)
+  # plot(ggpredict(m1e, terms = ~ PC1*PC2))
+  # plot(Effect(c("PC1","PC2"), m1e),lines = list(multiline= TRUE),confint = list(style = "auto"), main= FALSE, 
+   #     axes = list(grid = TRUE))
+   
+   #6
+   m1f <- glmmTMB(totPredPA ~ PC1*PC3  
+                  + (1| River/Location_Code), family = binomial, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1f, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1f)
+  # plot(ggpredict(m1f, terms = ~ PC1*PC3))
+  # plot(Effect(c("PC1","PC3"), m1f),lines = list(multiline= TRUE),confint = list(style = "auto"), main= FALSE, 
+  #      axes = list(grid = TRUE))
+   
+   #7
+   m1g <- glmmTMB(totPredPA ~ PC2*PC3  
+                  + (1| River/Location_Code), family = binomial, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1g, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1g)
+   
+  # plot(ggpredict(m1g, terms = ~ PC2*PC3))
+   
+ #  plot(Effect(c("PC2","PC3"), m1g),lines = list(multiline= TRUE),confint = list(style = "auto"), main= FALSE, 
+ #       axes = list(grid = TRUE))
+   
+   
+   #8
+   m1h <- glmmTMB(totPredPA ~ Time  
+                  + (1| River/Location_Code), family = binomial, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1h, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1h)
+   
+   #9
+   m1i <- glmmTMB(totPredPA ~ Replicate  
+                  + (1| River/Location_Code), family = binomial, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1i, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1i)
+   
+   #10
+   m1l <- glmmTMB(totPredPA ~ Control_first 
+                  + (1| River/Location_Code), family = binomial, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1l, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1l)
+  
+   #12 
+   m1n <- glmmTMB(totPredPA ~ PC1 + PC2 
+                  + (1| River/Location_Code), family = binomial, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1n, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1n)
+   
+   #13
+   m1o <- glmmTMB(totPredPA ~ PC1 + PC3 
+                  + (1| River/Location_Code), family = binomial, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1o, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1o)    
+   
+   #14
+   m1p <- glmmTMB(totPredPA ~ PC2 + PC3 
+                  + (1| River/Location_Code), family = binomial, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1p, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1p) 
+ #  plot(ggpredict(m1p, terms = ~ PC2+PC3))
+   
+ }
+  ICtab( m1a, m1b, m1c, m1d , m1e , m1f, m1g , m1h , m1i, m1l, m1n, m1o,type=c("AICc")) 
+ 
+ #FULL dataset - only Temperature DO and Flow
+ { #1
+   m1a <- glmmTMB(totPredPA ~ 
+                    (1| River/Location_Code), family = binomial, data = data)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1a, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1a)                
+   
+   #2
+   m1b <- glmmTMB(totPredPA ~   LOG_Temp_mean_C
+                  + (1| River/Location_Code), family = binomial, data = data)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1b, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1b)
+   
+   #3
+   m1c <- glmmTMB(totPredPA ~ LOG_DO_mgL  
+                  + (1| River/Location_Code), family = binomial, data = data)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1c, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1c)
+   
+   #4
+   m1d <- glmmTMB(totPredPA ~ Log_Flow_ms  
+                  + (1| River/Location_Code), family = binomial, data = data)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m1d, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m1d)
+
+ }
+ ICtab( m1a, m1b, m1c, m1d , type=c("AICc"))
+ 
+
+ ICtab( m1a, m1b, m1c, type=c("AICc"))
+ 
+ 
+ #plot models predictions
+ plot(ggpredict(m1p, terms = ~ PC2+PC3))
+ plot(ggpredict(m1g, terms = ~ PC2*PC3))
+ plot(ggpredict(m1f, terms = ~ PC1*PC3))
+ 
+ for_plot <- ggpredict(m1g, terms = ~ PC2*PC3)
+ ggplot(for_plot, aes(x=x, y= predicted, colour = group)) +
+  geom_line() 
+
+ glmm_interaction <- glmmTMB(totPredPA ~ PC2*PC3 + (1| River/Location_Code), family = binomial, data = data)
+ plot_model(glmm_interaction, type = "int", ci.lvl = 0.683) # conf. int. of 68.3% -> ± standard error
+
+#################################  
+## 2. Number of visits
+ # Full model
+ m2 <- glmmTMB(Predvisits ~ PC1 + PC2 + PC3 + Time + Replicate + Control_first + Treatment 
+               + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m2, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m2)                
+ drop1(m2, test="Chisq")
+ 
+ # Full model PREY only
+ m2 <- glmmTMB(Predvisits ~ PC2*PC3 + PC1 + PC2 + PC3 + PC1*PC2 + PC1*PC3 + PC2*PC3 + Time + Replicate + Control_first  
+               + (1| River/Location_Code), family = nbinom2, data = data_prey)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m2, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m2)                
+ drop1(m2, test="Chisq")
+ 
+ # break it down and add interactions
+ {
+ #1   
+ m2a <- glmmTMB(Predvisits ~ 
+                   (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m2a, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m2a)                
+ 
+ #2
+ m2b <- glmmTMB(Predvisits ~ PC1  
+                + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m2b, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m2b)
+ 
+ #3
+ m2c <- glmmTMB(Predvisits ~ PC2  
+                + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m2c, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m2c)
+ 
+ #4
+ m2d <- glmmTMB(Predvisits ~ PC3  
+                + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m2d, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m2d)
+ 
+ #5
+ m2e <- glmmTMB(Predvisits ~ PC1*PC2  
+                + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m2e, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m2e)
+ 
+ #6
+ m2f <- glmmTMB(Predvisits ~ PC1*PC3  
+                + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m2f, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m2f)
+ 
+ #7
+ m2g <- glmmTMB(Predvisits ~ PC2*PC3  
+                + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m2g, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m2g)
+ 
+ #8
+ m2h <- glmmTMB(Predvisits ~ Time  
+                + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m2h, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m2h)
+ 
+ #9
+ m2i <- glmmTMB(Predvisits ~ Replicate  
+                + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m2i, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m2i)
+ 
+ #10
+ m2l <- glmmTMB(Predvisits ~ Control_first 
+                + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m2l, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m2l)
+ 
+ #11
+ m2m <- glmmTMB(Predvisits ~ Treatment 
+                + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m2m, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m2m)
+ 
+ #12
+ m2n <- glmmTMB(Predvisits ~ PC1 + PC2 
+                + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m2n, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m2n)
+ 
+ #13
+ m2o <- glmmTMB(Predvisits ~ PC1 + PC3 
+                + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m2o, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m2o)
+ 
+#14
+ m2p <- glmmTMB(Predvisits ~ PC2 + PC3 
+                + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m2p, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m2p)
+ 
+ }
+ ICtab( m2a, m2b, m2c, m2d , m2e , m2f, m2g , m2h , m2i, m2l, m2m, m2n, m2o, m2p, type=c("AICc")) 
+
+ # PREY data only
+ {
+    #1
+    m2a <- glmmTMB(Predvisits ~ 
+                      (1| River/Location_Code), family = nbinom2, data = data_prey)
+    
+    simulationOutput <- simulateResiduals(fittedModel = m2a, re.form = NULL)
+    testDispersion(simulationOutput)
+    summary(m2a)  
+    r_squared <- r.squaredGLMM(m2a)
+    
+    #2
+    m2b <- glmmTMB(Predvisits ~ PC1  
+                   + (1| River/Location_Code), family = nbinom2, data = data_prey)
+    
+    simulationOutput <- simulateResiduals(fittedModel = m2b, re.form = NULL)
+    testDispersion(simulationOutput)
+    summary(m2b)
+    r_squared <- r.squaredGLMM(m2b)
+    r_squared 
+    
+    #3
+    m2c <- glmmTMB(Predvisits ~ PC2  
+                   + (1| River/Location_Code), family = nbinom2, data = data_prey)
+    
+    simulationOutput <- simulateResiduals(fittedModel = m2c, re.form = NULL)
+    testDispersion(simulationOutput)
+    summary(m2c)
+    
+    #4
+    m2d <- glmmTMB(Predvisits ~ PC3  
+                   + (1| River/Location_Code), family = nbinom2, data = data_prey)
+    
+    simulationOutput <- simulateResiduals(fittedModel = m2d, re.form = NULL)
+    testDispersion(simulationOutput)
+    summary(m2d)
+    
+    #5
+    m2e <- glmmTMB(Predvisits ~ PC1*PC2  
+                   + (1| River/Location_Code), family = nbinom2, data = data_prey)
+    
+    simulationOutput <- simulateResiduals(fittedModel = m2e, re.form = NULL)
+    testDispersion(simulationOutput)
+    summary(m2e)
+    
+    #6
+    m2f <- glmmTMB(Predvisits ~ PC1*PC3  
+                   + (1| River/Location_Code), family = nbinom2, data = data_prey)
+    
+    simulationOutput <- simulateResiduals(fittedModel = m2f, re.form = NULL)
+    testDispersion(simulationOutput)
+    summary(m2f)
+    
+    #7
+    m2g <- glmmTMB(Predvisits ~ PC2*PC3  
+                   + (1| River/Location_Code), family = nbinom2, data = data_prey)
+    
+    simulationOutput <- simulateResiduals(fittedModel = m2g, re.form = NULL)
+    testDispersion(simulationOutput)
+    summary(m2g)
+    
+    #8
+    m2h <- glmmTMB(Predvisits ~ Time  
+                   + (1| River/Location_Code), family = nbinom2, data = data_prey)
+    
+    simulationOutput <- simulateResiduals(fittedModel = m2h, re.form = NULL)
+    testDispersion(simulationOutput)
+    summary(m2h)
+    
+    #9
+    m2i <- glmmTMB(Predvisits ~ Replicate  
+                   + (1| River/Location_Code), family = nbinom2, data = data_prey)
+    
+    simulationOutput <- simulateResiduals(fittedModel = m2i, re.form = NULL)
+    testDispersion(simulationOutput)
+    summary(m2i)
+    
+    #10
+    m2l <- glmmTMB(Predvisits ~ Control_first 
+                   + (1| River/Location_Code), family = nbinom2, data = data_prey)
+    
+    simulationOutput <- simulateResiduals(fittedModel = m2l, re.form = NULL)
+    testDispersion(simulationOutput)
+    summary(m2l)
+
+    #12
+    m2n <- glmmTMB(Predvisits ~ PC1 + PC2 
+                   + (1| River/Location_Code), family = nbinom2, data = data_prey)
+    
+    simulationOutput <- simulateResiduals(fittedModel = m2n, re.form = NULL)
+    testDispersion(simulationOutput)
+    summary(m2n)
+    
+    #13
+    m2o <- glmmTMB(Predvisits ~ PC1 + PC3 
+                   + (1| River/Location_Code), family = nbinom2, data = data_prey)
+    
+    simulationOutput <- simulateResiduals(fittedModel = m2o, re.form = NULL)
+    testDispersion(simulationOutput)
+    summary(m2o)
+    
+    #14
+    m2p <- glmmTMB(Predvisits ~ PC2 + PC3 
+                   + (1| River/Location_Code), family = nbinom2, data = data_prey)
+    
+    simulationOutput <- simulateResiduals(fittedModel = m2p, re.form = NULL)
+    testDispersion(simulationOutput)
+    summary(m2p)  
+    
+ }
+ ICtab( m2a, m2b, m2c, m2d , m2e , m2f, m2g , m2h , m2i, m2l, m2n, m2o,m2p, type=c("AICc")) 
+
+ # CONTROL ONLY
+ {
+   #1
+   m2a <- glmmTMB(Predvisits ~ 
+                    (1| River/Location_Code), family = nbinom2, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m2a, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m2a)                
+   
+   #2
+   m2b <- glmmTMB(Predvisits ~ PC1  
+                  + (1| River/Location_Code), family = nbinom2, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m2b, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m2b)
+   
+   #3
+   m2c <- glmmTMB(Predvisits ~ PC2  
+                  + (1| River/Location_Code), family = nbinom2, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m2c, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m2c)
+   
+   #4
+   m2d <- glmmTMB(Predvisits ~ PC3  
+                  + (1| River/Location_Code), family = nbinom2, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m2d, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m2d)
+   
+   #5
+   m2e <- glmmTMB(Predvisits ~ PC1*PC2  
+                  + (1| River/Location_Code), family = nbinom2, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m2e, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m2e)
+   
+   #6
+   m2f <- glmmTMB(Predvisits ~ PC1*PC3  
+                  + (1| River/Location_Code), family = nbinom2, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m2f, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m2f)
+   
+   #7
+   m2g <- glmmTMB(Predvisits ~ PC2*PC3  
+                  + (1| River/Location_Code), family = nbinom2, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m2g, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m2g)
+   
+   #8
+   m2h <- glmmTMB(Predvisits ~ Time  
+                  + (1| River/Location_Code), family = nbinom2, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m2h, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m2h)
+   
+   #9
+   m2i <- glmmTMB(Predvisits ~ Replicate  
+                  + (1| River/Location_Code), family = nbinom2, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m2i, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m2i)
+   
+   #10
+   m2l <- glmmTMB(Predvisits ~ Control_first 
+                  + (1| River/Location_Code), family = nbinom2, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m2l, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m2l)
+   
+   #12
+   m2n <- glmmTMB(Predvisits ~ PC1 + PC2 
+                  + (1| River/Location_Code), family = nbinom2, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m2n, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m2n)
+   
+   #13
+   m2o <- glmmTMB(Predvisits ~ PC1 + PC3 
+                  + (1| River/Location_Code), family = nbinom2, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m2o, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m2o)
+   
+   #14
+   m2p <- glmmTMB(Predvisits ~ PC2 + PC3 
+                  + (1| River/Location_Code), family = nbinom2, data = data_cont)
+   
+   simulationOutput <- simulateResiduals(fittedModel = m2p, re.form = NULL)
+   testDispersion(simulationOutput)
+   summary(m2p)  
+   
+ }
+ ICtab( m2a, m2b, m2c, m2d , m2e , m2f, m2g , m2h , m2i, m2l, m2n, m2o,m2p, type=c("AICc")) 
+
+ ##################################################
+ ## 3. Time of first visit        (PredFirstV)
+ # Full model
+ m3 <- glmmTMB(PredFirstV ~ PC1 + PC2 + PC3 + Time + Replicate + Control_first + Treatment 
+               + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m3, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m3)                
+ drop1(m3, test="Chisq")
+ 
+ # break it down and add interactions
+ {
+ #1
+ m3a <- glmmTMB(PredFirstV ~ 
+                  (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m3a, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m3a)                
+ 
+ #2
+ m3b <- glmmTMB(PredFirstV ~ PC1  
+                + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m3b, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m3b)
+ 
+ #3
+ m3c <- glmmTMB(PredFirstV ~ PC2  
+                + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m3c, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m3c)
+ 
+ #4
+ m3d <- glmmTMB(PredFirstV ~ PC3  
+                + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m3d, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m3d)
+ 
+ #5
+ m3e <- glmmTMB(PredFirstV ~ PC1*PC2  
+                + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m3e, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m3e)
+ 
+ #6
+ m3f <- glmmTMB(PredFirstV ~ PC1*PC3  
+                + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m3f, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m3f)
+ 
+ #7
+ m3g <- glmmTMB(PredFirstV ~ PC2*PC3  
+                + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m3g, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m3g)
+ 
+ #8
+ m3h <- glmmTMB(PredFirstV ~ Time  
+                + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m3h, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m3h)
+ 
+ #9
+ m3i <- glmmTMB(PredFirstV ~ Replicate  
+                + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m3i, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m3i)
+ 
+ #10
+ m3l <- glmmTMB(PredFirstV ~ Control_first 
+                + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m3l, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m3l)
+ 
+ #11
+ m3m <- glmmTMB(PredFirstV ~ Treatment 
+                + (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m3m, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m3m)
+ 
+ #12
+ m3n <- glmmTMB(PredFirstV ~ PC1 + PC2 +
+                  (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m3n, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m3n)
+ 
+ #13
+ m3o <- glmmTMB(PredFirstV ~ PC1 + PC3 +
+                (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m3o, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m3o) 
+ 
+ #14
+ m3p <- glmmTMB(PredFirstV ~ PC2 + PC3 +
+                (1| River/Location_Code), family = nbinom2, data = data)
+ 
+ simulationOutput <- simulateResiduals(fittedModel = m3p, re.form = NULL)
+ testDispersion(simulationOutput)
+ summary(m3p)
+ 
+ }
+ICtab( m3a, m3b, m3c, m3d , m3e , m3f, m3g , m3h , m3i, m3l, m3m, m3n, m3o, m3p, type=c("AICc")) 
+
+#PREY ONLY
+{
+  #1
+  m3a <- glmmTMB(PredFirstV ~ 
+                   (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3a, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3a)                
+  
+  #2
+  m3b <- glmmTMB(PredFirstV ~ PC1  
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3b, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3b)
+  
+  #3
+  m3c <- glmmTMB(PredFirstV ~ PC2  
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3c, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3c)
+  
+  #4
+  m3d <- glmmTMB(PredFirstV ~ PC3  
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3d, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3d)
+  
+  #5
+  m3e <- glmmTMB(PredFirstV ~ PC1*PC2  
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3e, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3e)
+  
+  #6
+  m3f <- glmmTMB(PredFirstV ~ PC1*PC3  
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3f, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3f)
+  
+  #7
+  m3g <- glmmTMB(PredFirstV ~ PC2*PC3  
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3g, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3g)
+  
+  #8
+  m3h <- glmmTMB(PredFirstV ~ Time  
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3h, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3h)
+  
+  #9
+  m3i <- glmmTMB(PredFirstV ~ Replicate  
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3i, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3i)
+  
+  #10
+  m3l <- glmmTMB(PredFirstV ~ Control_first 
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3l, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3l)
+
+  #12
+  m3n <- glmmTMB(PredFirstV ~ PC1 + PC2 +
+                   (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3n, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3n)
+  
+  #13
+  m3o <- glmmTMB(PredFirstV ~ PC1 + PC3 +
+                   (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3o, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3o) 
+  
+  #14
+  m3p <- glmmTMB(PredFirstV ~ PC2 + PC3 +
+                   (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3p, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3p)
+  
+}
+ICtab( m3a, m3b, m3c, m3d , m3e , m3f, m3g , m3h , m3i, m3l, m3n, m3o, m3p, type=c("AICc")) 
+
+# Control ONLY
+{
+  #1
+  m3a <- glmmTMB(PredFirstV ~ 
+                   (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3a, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3a)                
+  
+  #2
+  m3b <- glmmTMB(PredFirstV ~ PC1  
+                 + (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3b, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3b)
+  
+  #3
+  m3c <- glmmTMB(PredFirstV ~ PC2  
+                 + (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3c, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3c)
+  
+  #4
+  m3d <- glmmTMB(PredFirstV ~ PC3  
+                 + (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3d, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3d)
+  
+  #5
+  m3e <- glmmTMB(PredFirstV ~ PC1*PC2  
+                 + (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3e, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3e)
+  
+  #6
+  m3f <- glmmTMB(PredFirstV ~ PC1*PC3  
+                 + (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3f, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3f)
+  
+  #7
+  m3g <- glmmTMB(PredFirstV ~ PC2*PC3  
+                 + (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3g, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3g)
+  
+  #8
+  m3h <- glmmTMB(PredFirstV ~ Time  
+                 + (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3h, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3h)
+  
+  #9
+  m3i <- glmmTMB(PredFirstV ~ Replicate  
+                 + (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3i, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3i)
+  
+  #10
+  m3l <- glmmTMB(PredFirstV ~ Control_first 
+                 + (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3l, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3l)
+  
+  #12
+  m3n <- glmmTMB(PredFirstV ~ PC1 + PC2 +
+                   (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3n, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3n)
+  
+  #13
+  m3o <- glmmTMB(PredFirstV ~ PC1 + PC3 +
+                   (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3o, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3o) 
+  
+  #14
+  m3p <- glmmTMB(PredFirstV ~ PC2 + PC3 +
+                   (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m3p, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m3p)
+  
+}
+ICtab( m3a, m3b, m3c, m3d , m3e , m3f, m3g , m3h , m3i, m3l, m3n, m3o, m3p, type=c("AICc")) 
+
+
+##################################################################
+###  4. Time spent near stimulus   (Predtottime)
+# Full model
+m4 <- glmmTMB(Predtottime ~ PC1 + PC2 + PC3 + Time + Replicate + Control_first + Treatment 
+              + (1| River/Location_Code), ziformula=~1 ,family = nbinom2, data = data)
+
+simulationOutput <- simulateResiduals(fittedModel = m4, re.form = NULL)
+testDispersion(simulationOutput)
+summary(m4)                
+drop1(m4, test="Chisq")
+
+### try same model but only for Treatment Prey data
+m44 <- glmmTMB(Predtottime ~ PC1 + PC2 + PC3 + Time + Replicate + Control_first 
+              + (1| River/Location_Code), ziformula=~1 ,family = nbinom2, data = data_prey)
+
+simulationOutput <- simulateResiduals(fittedModel = m44, re.form = NULL)
+testDispersion(simulationOutput)
+summary(m44)                
+drop1(m44, test="Chisq")
+
+# break it down and add interactions
+{
+  #1
+  m4a <- glmmTMB(Predtottime ~ 
+                   (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4a, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4a)                
+  
+  #2
+  m4b <- glmmTMB(Predtottime ~ PC1  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4b, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4b)
+  
+  #3
+  m4c <- glmmTMB(Predtottime ~ PC2  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4c, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4c)
+  
+  #4
+  m4d <- glmmTMB(Predtottime ~ PC3  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4d, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4d)
+  
+  #5
+  m4e <- glmmTMB(Predtottime ~ PC1*PC2  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4e, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4e)
+  
+  #6
+  m4f <- glmmTMB(Predtottime ~ PC1*PC3  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4f, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4f)
+  
+  #7
+  m4g <- glmmTMB(Predtottime ~ PC2*PC3  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4g, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4g)
+  
+  #8
+  m4h <- glmmTMB(Predtottime ~ Time  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4h, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4h)
+  
+  #9
+  m4i <- glmmTMB(Predtottime ~ Replicate  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4i, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4i)
+  
+  #10
+  m4l <- glmmTMB(Predtottime ~ Control_first 
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4l, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4l)
+  
+  #11
+  m4m <- glmmTMB(Predtottime ~ Treatment 
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4m, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4m)
+  
+  #12
+  m4n <- glmmTMB(Predtottime ~ PC1 + PC2  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4n, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4n)
+  
+  #13
+  m4o <- glmmTMB(Predtottime ~ PC1 + PC3  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4o, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4o) 
+  
+  #14
+  m4p <- glmmTMB(Predtottime ~ PC3 + PC2  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4p, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4p) 
+  
+  
+}
+ICtab( m4a, m4b, m4c, m4d , m4e , m4f, m4g , m4h , m4i, m4l, m4m,  m4n,  m4o,  m4p, type=c("AICc")) 
+
+# PREY ONLY break it down and add interactions
+{
+  #1
+  m4a <- glmmTMB(Predtottime ~ 
+                   (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4a, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4a)                
+  
+  #2
+  m4b <- glmmTMB(Predtottime ~ PC1  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4b, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4b)
+  
+  #3
+  m4c <- glmmTMB(Predtottime ~ PC2  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4c, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4c)
+  
+  #4
+  m4d <- glmmTMB(Predtottime ~ PC3  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4d, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4d)
+  
+  #5
+  m4e <- glmmTMB(Predtottime ~ PC1*PC2  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4e, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4e)
+  
+  #6
+  m4f <- glmmTMB(Predtottime ~ PC1*PC3  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4f, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4f)
+  
+  #7
+  m4g <- glmmTMB(Predtottime ~ PC2*PC3  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4g, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4g)
+  
+  #8
+  m4h <- glmmTMB(Predtottime ~ Time  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4h, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4h)
+  
+  #9
+  m4i <- glmmTMB(Predtottime ~ Replicate  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4i, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4i)
+  
+  #10
+  m4l <- glmmTMB(Predtottime ~ Control_first 
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4l, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4l)
+  
+  #12
+  m4n <- glmmTMB(Predtottime ~ PC1 + PC2  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4n, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4n)
+  
+  #13
+  m4o <- glmmTMB(Predtottime ~ PC1 + PC3  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4o, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4o) 
+  
+  #14
+  m4p <- glmmTMB(Predtottime ~ PC3 + PC2  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4p, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4p) 
+  
+}
+ICtab( m4a, m4b, m4c, m4d , m4e , m4f, m4g , m4h , m4i, m4l, m4n,  m4o,  m4p, type=c("AICc"))
+
+# Control ONLY
+{
+  #1
+  m4a <- glmmTMB(Predtottime ~ 
+                   (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4a, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4a)                
+  
+  #2
+  m4b <- glmmTMB(Predtottime ~ PC1  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4b, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4b)
+  
+  #3
+  m4c <- glmmTMB(Predtottime ~ PC2  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4c, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4c)
+  
+  #4
+  m4d <- glmmTMB(Predtottime ~ PC3  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4d, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4d)
+  
+  #5
+  m4e <- glmmTMB(Predtottime ~ PC1*PC2  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4e, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4e)
+  
+  #6
+  m4f <- glmmTMB(Predtottime ~ PC1*PC3  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4f, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4f)
+  
+  #7
+  m4g <- glmmTMB(Predtottime ~ PC2*PC3  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4g, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4g)
+  
+  #8
+  m4h <- glmmTMB(Predtottime ~ Time  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4h, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4h)
+  
+  #9
+  m4i <- glmmTMB(Predtottime ~ Replicate  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4i, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4i)
+  
+  #10
+  m4l <- glmmTMB(Predtottime ~ Control_first 
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4l, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4l)
+
+  #12
+  m4n <- glmmTMB(Predtottime ~ PC1 + PC2  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4n, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4n)
+  
+  #13
+  m4o <- glmmTMB(Predtottime ~ PC1 + PC3  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4o, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4o) 
+  
+  #14
+  m4p <- glmmTMB(Predtottime ~ PC3 + PC2  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m4p, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m4p) 
+  
+  
+}
+ICtab( m4a, m4b, m4c, m4d , m4e , m4f, m4g , m4h , m4i, m4l, m4n,  m4o,  m4p, type=c("AICc"))
+
+
+##################################################
+###  5. Number of attacks          (PredAttack)
+# full model
+m5 <- glmmTMB(PredAttack ~ PC1 + PC2 + PC3 + Time + Replicate + Control_first + Treatment 
+              + (1| River/Location_Code) ,family = nbinom2, data = data)
+
+simulationOutput <- simulateResiduals(fittedModel = m5, re.form = NULL)
+testDispersion(simulationOutput)
+summary(m5)                
+drop1(m5, test="Chisq")
+
+### try same model but only for Treatment Prey data and remove the Zero inflation
+m55 <- glmmTMB(PredAttack ~ PC1 + PC2 + PC3 + Time + Replicate + Control_first 
+               + (1| River/Location_Code) ,family = nbinom2, data = data_prey)
+
+simulationOutput <- simulateResiduals(fittedModel = m55, re.form = NULL)
+testDispersion(simulationOutput)
+summary(m55)                
+drop1(m55, test="Chisq")
+
+# break it down and add interactions
+{
+  #1
+  m5a <- glmmTMB(PredAttack ~ 
+                   (1| River/Location_Code), family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5a, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5a)                
+  
+  #2
+  m5b <- glmmTMB(PredAttack ~ PC1  
+                 + (1| River/Location_Code), family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5b, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5b)
+  
+  #3
+  m5c <- glmmTMB(PredAttack ~ PC2  
+                 + (1| River/Location_Code), family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5c, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5c)
+  
+  #4
+  m5d <- glmmTMB(PredAttack ~ PC3  
+                 + (1| River/Location_Code), family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5d, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5d)
+  
+  #5
+  m5e <- glmmTMB(PredAttack ~ PC1*PC2  
+                 + (1| River/Location_Code), family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5e, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5e)
+  
+  #6
+  m5f <- glmmTMB(PredAttack ~ PC1*PC3  
+                 + (1| River/Location_Code), family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5f, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5f)
+  
+  #7
+  m5g <- glmmTMB(PredAttack ~ PC2*PC3  
+                 + (1| River/Location_Code), family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5g, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5g)
+  
+  #8
+  m5h <- glmmTMB(PredAttack ~ Time  
+                 + (1| River/Location_Code), family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5h, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5h)
+  
+  #9
+  m5i <- glmmTMB(PredAttack ~ Replicate  
+                 + (1| River/Location_Code), family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5i, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5i)
+  
+  #10
+  m5l <- glmmTMB(PredAttack ~ Control_first 
+                 + (1| River/Location_Code), family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5l, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5l)
+  
+  #11
+  m5m <- glmmTMB(PredAttack ~ Treatment 
+                 + (1| River/Location_Code), family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5m, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5m)
+  
+  #12
+  m5n <- glmmTMB(PredAttack ~ PC1 + PC2 
+                 + (1| River/Location_Code), family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5n, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5n)
+  
+  #13
+  m5o <- glmmTMB(PredAttack ~ PC1 + PC3 
+                 + (1| River/Location_Code), family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5o, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5o) 
+  
+  #14
+  m5p <- glmmTMB(PredAttack ~ PC2 + PC3 
+                 + (1| River/Location_Code), family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5p, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5p)  
+  
+}
+ICtab( m5a, m5b, m5c, m5d , m5e , m5f, m5g , m5h , m5i, m5l, m5m, m5n, m5o, m5p, type=c("AICc")) 
+
+# PREY ONLY break it down and add interactions
+{
+  #1
+  m5a <- glmmTMB(PredAttack ~ 
+                   (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5a, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5a)                
+  
+  #2
+  m5b <- glmmTMB(PredAttack ~ PC1  
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5b, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5b)
+  
+  #3
+  m5c <- glmmTMB(PredAttack ~ PC2  
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5c, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5c)
+  
+  #4
+  m5d <- glmmTMB(PredAttack ~ PC3  
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5d, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5d)
+  
+  #5
+  m5e <- glmmTMB(PredAttack ~ PC1*PC2  
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5e, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5e)
+  
+  #6
+  m5f <- glmmTMB(PredAttack ~ PC1*PC3  
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5f, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5f)
+  
+  #7
+  m5g <- glmmTMB(PredAttack ~ PC2*PC3  
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5g, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5g)
+  
+  #8
+  m5h <- glmmTMB(PredAttack ~ Time  
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5h, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5h)
+  
+  #9
+  m5i <- glmmTMB(PredAttack ~ Replicate  
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5i, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5i)
+  
+  #10
+  m5l <- glmmTMB(PredAttack ~ Control_first 
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5l, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5l)
+  
+  #12
+  m5n <- glmmTMB(PredAttack ~ PC1 + PC2 
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5n, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5n)
+  
+  #13
+  m5o <- glmmTMB(PredAttack ~ PC1 + PC3 
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5o, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5o) 
+  
+  #14
+  m5p <- glmmTMB(PredAttack ~ PC2 + PC3 
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5p, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5p)  
+  
+}
+ICtab( m5a, m5b, m5c, m5d , m5e , m5f, m5g , m5h , m5i, m5l, m5n, m5o, m5p, type=c("AICc")) 
+
+# Control ONly
+{
+  #1
+  m5a <- glmmTMB(PredAttack ~ 
+                   (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5a, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5a)                
+  
+  #2
+  m5b <- glmmTMB(PredAttack ~ PC1  
+                 + (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5b, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5b)
+  
+  #3
+  m5c <- glmmTMB(PredAttack ~ PC2  
+                 + (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5c, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5c)
+  
+  #4
+  m5d <- glmmTMB(PredAttack ~ PC3  
+                 + (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5d, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5d)
+  
+  #5
+  m5e <- glmmTMB(PredAttack ~ PC1*PC2  
+                 + (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5e, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5e)
+  
+  #6
+  m5f <- glmmTMB(PredAttack ~ PC1*PC3  
+                 + (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5f, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5f)
+  
+  #7
+  m5g <- glmmTMB(PredAttack ~ PC2*PC3  
+                 + (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5g, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5g)
+  
+  #8
+  m5h <- glmmTMB(PredAttack ~ Time  
+                 + (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5h, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5h)
+  
+  #9
+  m5i <- glmmTMB(PredAttack ~ Replicate  
+                 + (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5i, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5i)
+  
+  #10
+  m5l <- glmmTMB(PredAttack ~ Control_first 
+                 + (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5l, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5l)
+  
+  #12
+  m5n <- glmmTMB(PredAttack ~ PC1 + PC2 
+                 + (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5n, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5n)
+  
+  #13
+  m5o <- glmmTMB(PredAttack ~ PC1 + PC3 
+                 + (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5o, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5o) 
+  
+  #14
+  m5p <- glmmTMB(PredAttack ~ PC2 + PC3 
+                 + (1| River/Location_Code), family = nbinom2, data = data_cont)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m5p, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m5p)  
+  
+}
+ICtab( m5a, m5b, m5c, m5d , m5e , m5f, m5g , m5h , m5i, m5l, m5n, m5o, m5p, type=c("AICc"))
+
+#####################################################################
+###  6. Latency to first attack    (LatencyPredFirstA)
+m6 <- glmmTMB(LatencyPredFirstA ~ PC1 + PC2 + PC3 + Time + Replicate + Control_first + Treatment 
+              + (1| River/Location_Code) , ziformula=~1 ,family = nbinom2, data = data)
+
+simulationOutput <- simulateResiduals(fittedModel = m6, re.form = NULL)
+testDispersion(simulationOutput)
+summary(m6)                
+drop1(m6, test="Chisq")
+
+### try same model but only for Treatment Prey data 
+m66 <- glmmTMB(LatencyPredFirstA ~ PC1 + PC2 + PC3 + Time + Replicate + Control_first 
+               + (1| River/Location_Code) , ziformula=~1 ,family = nbinom2, data = data_prey)
+
+simulationOutput <- simulateResiduals(fittedModel = m66, re.form = NULL)
+testDispersion(simulationOutput)
+summary(m66)                
+drop1(m66, test="Chisq")
+
+# break it down and add interactions
+{
+  #1
+  m6a <- glmmTMB(LatencyPredFirstA ~ 
+                   (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6a, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6a)                
+  
+  #2
+  m6b <- glmmTMB(LatencyPredFirstA ~ PC1  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6b, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6b)
+  
+  #3
+  m6c <- glmmTMB(LatencyPredFirstA ~ PC2  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6c, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6c)
+  
+  #4
+  m6d <- glmmTMB(LatencyPredFirstA ~ PC3  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6d, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6d)
+  
+  #5
+  m6e <- glmmTMB(LatencyPredFirstA ~ PC1*PC2  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6e, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6e)
+  
+  #6
+  m6f <- glmmTMB(LatencyPredFirstA ~ PC1*PC3  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6f, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6f)
+  
+  #7
+  m6g <- glmmTMB(LatencyPredFirstA ~ PC2*PC3  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6g, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6g)
+  
+  #8
+  m6h <- glmmTMB(LatencyPredFirstA ~ Time  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6h, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6h)
+  
+  #9
+  m6i <- glmmTMB(LatencyPredFirstA ~ Replicate  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6i, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6i)
+  
+  #10
+  m6l <- glmmTMB(LatencyPredFirstA ~ Control_first 
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6l, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6l)
+  
+  #11
+  m6m <- glmmTMB(LatencyPredFirstA ~ Treatment 
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6m, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6m)
+  
+  
+  #12
+  m6n <- glmmTMB(PredAttack ~ PC1 + PC2 
+                 + (1| River/Location_Code), family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6n, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6n)
+  
+  #13
+  m6o <- glmmTMB(PredAttack ~ PC1 + PC3 
+                 + (1| River/Location_Code), family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6o, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6o) 
+  
+  #14
+  m6p <- glmmTMB(PredAttack ~ PC2 + PC3 
+                 + (1| River/Location_Code), family = nbinom2, data = data)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6p, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6p) 
+  
+}
+ICtab( m6a, m6b, m6c, m6d , m6e , m6f, m6g , m6h , m6i, m6l, m6m, m6n, m6o, m6p, type=c("AICc")) 
+
+# PREY ONLY
+{
+  #1
+  m6a <- glmmTMB(LatencyPredFirstA ~ 
+                   (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6a, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6a)                
+  
+  #2
+  m6b <- glmmTMB(LatencyPredFirstA ~ PC1  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6b, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6b)
+  
+  #3
+  m6c <- glmmTMB(LatencyPredFirstA ~ PC2  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6c, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6c)
+  
+  #4
+  m6d <- glmmTMB(LatencyPredFirstA ~ PC3  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6d, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6d)
+  
+  #5
+  m6e <- glmmTMB(LatencyPredFirstA ~ PC1*PC2  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6e, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6e)
+  
+  #6
+  m6f <- glmmTMB(LatencyPredFirstA ~ PC1*PC3  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6f, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6f)
+  
+  #7
+  m6g <- glmmTMB(LatencyPredFirstA ~ PC2*PC3  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6g, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6g)
+  
+  #8
+  m6h <- glmmTMB(LatencyPredFirstA ~ Time  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6h, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6h)
+  
+  #9
+  m6i <- glmmTMB(LatencyPredFirstA ~ Replicate  
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6i, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6i)
+  
+  #10
+  m6l <- glmmTMB(LatencyPredFirstA ~ Control_first 
+                 + (1| River/Location_Code), ziformula=~1 , family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6l, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6l)
+  
+  #12
+  m6n <- glmmTMB(PredAttack ~ PC1 + PC2 
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6n, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6n)
+  
+  #13
+  m6o <- glmmTMB(PredAttack ~ PC1 + PC3 
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6o, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6o) 
+  
+  #14
+  m6p <- glmmTMB(PredAttack ~ PC2 + PC3 
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+  
+  simulationOutput <- simulateResiduals(fittedModel = m6p, re.form = NULL)
+  testDispersion(simulationOutput)
+  summary(m6p)  
+}
+ICtab( m6a, m6b, m6c, m6d , m6e , m6f, m6g , m6h , m6i, m6l, m6n, m6o, m6p, type=c("AICc")) 
+
+
+#################################################
+################## GLMM plots ###################
+
+head(data_prey)
+
+par(mfrow=c(1,1))
+par(mar = c(4.5, 3, 1, 1)) # Set the margin on all sides to 5 (bottom, left, top, right)
+par(pty="s") # makes plot square
+
+#1 Presence / Absence
+# make hearmap for PC2 and PC3 as interaction effect found
+
+#boxplot(PC1 ~ totPredPA, col= "#84A59E", ylim=c(-4,4), cex.lab=2, cex.axis=1.5,
+#         ylab= "PC1",
+#         xlab = "Presence/Absence", data=data_prey)
+# 
+# boxplot(PC2 ~ totPredPA, col= "#FFCCB1", ylim=c(-4,4),cex.lab=2, cex.axis=1.5,
+#         ylab= "PC2", xlab = "Presence/Absence",
+#         data=data_prey)
+# 
+# boxplot(PC3 ~ totPredPA, col= "#CFD7EE", ylim=c(-4,4),cex.lab=2, cex.axis=1.5,
+#         ylab= "PC3", xlab = "Presence/Absence",
+#         data=data_prey)
+
+
+# use the Estimate intercept and slopes from summary function to create the curved trendline in plots.
+# use the exp function on the curve to backtransform the log-link function
+
+#2 Time First Visit
+glmm2 <- glmmTMB(PredFirstV ~ PC1 
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+glmm2 <- glmmTMB(PredFirstV ~ PC2 
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+glmm2 <- glmmTMB(PredFirstV ~ PC3 
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+summary(glmm2) # find intercept & slope for each PC
+
+plot(PredFirstV ~ PC1, col= "#84A59E", xlim=c(-4,4), cex=3, pch=20, cex.lab=2, cex.axis=1.5,
+     xlab= "PC1", ylab= "Time to First Visit (sec)", data=data_prey)
+curve(exp(5.24762 + -0.05854*x), 
+      add=TRUE, col = "black", lwd=5)
+
+plot(PredFirstV ~ PC2, col= "#FFCCB1", xlim=c(-4,4), cex=3, pch=20,cex.lab=2, cex.axis=1.5, 
+     xlab= "PC2", ylab= "Time to First Visit (sec)", data=data_prey)
+curve(exp(5.21889 +  -0.26891*x), 
+      add=TRUE, col = "black", lwd=5)
+
+plot(PredFirstV ~ PC3, col= "#CFD7EE", xlim=c(-4,4), cex=3, pch=20, cex.lab=2, cex.axis=1.5,
+     xlab= "PC3", ylab= "Time to First Visit (sec)",data=data_prey)
+curve(exp(5.26395 + -0.15723*x), 
+      add=TRUE, col = "black", lwd=5)
+
+#3 Number of Visits
+glmm3 <- glmmTMB(Predvisits ~ PC1  
+                    + (1| River/Location_Code), family = nbinom2, data = data_prey)
+glmm3 <- glmmTMB(Predvisits ~ PC2  
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+glmm3 <- glmmTMB(Predvisits ~ PC3  
+                 + (1| River/Location_Code), family = nbinom2, data = data_prey)
+summary(glmm3)
+
+plot(Predvisits ~ PC1, col= "#84A59E", xlim=c(-4,4), cex=3, pch=20, cex.lab=2, cex.axis=1.5,
+     ylab= "Number of Visits", xlab= "PC1", data=data_prey)
+curve(exp(2.64518 + 0.02943*x), 
+      add=TRUE, col = "black", lwd=5)
+
+plot(Predvisits ~ PC2, col= "#FFCCB1", xlim=c(-4,4), cex=3, pch=20, cex.lab=2, cex.axis=1.5,
+     ylab= "Number of Visits", xlab= "PC2", data=data_prey)
+curve(exp(2.53573 + 0.48842*x), 
+      add=TRUE, col = "black", lwd=5)
+
+plot(Predvisits ~ PC3, col= "#CFD7EE", xlim=c(-4,4), cex=3, pch=20,cex.lab=2, cex.axis=1.5, 
+     ylab= "Number of Visits", xlab= "PC3",data=data_prey)
+curve(exp(2.6532 + 0.1055*x), 
+      add=TRUE, col = "black", lwd=5)
+
+#4 Time Near Stimulus 
+glmm4 <- glmmTMB(Predtottime ~ PC1 
+                 + (1| River/Location_Code), ziformula=~1 ,family = nbinom2, data = data_prey)
+glmm4 <- glmmTMB(Predtottime ~ PC2 
+                 + (1| River/Location_Code), ziformula=~1 ,family = nbinom2, data = data_prey)
+glmm4 <- glmmTMB(Predtottime ~ PC3 
+                 + (1| River/Location_Code), ziformula=~1 ,family = nbinom2, data = data_prey)
+summary(glmm4)
+
+plot(Predtottime ~ PC1, col= "#84A59E", xlim=c(-4,4), cex=3, pch=20, cex.lab=2, cex.axis=1.5,
+     ylab= "Time near Stimulus (sec)", xlab= "PC1", data=data_prey)
+curve(exp(5.76504 + -0.02984*x), 
+      add=TRUE, col = "black", lwd=5)
+
+plot(Predtottime ~ PC2, col= "#FFCCB1", xlim=c(-4,4), cex=3, pch=20,cex.lab=2, cex.axis=1.5,
+     ylab= "Time near Stimulus (sec)", xlab= "PC2", data=data_prey)
+curve(exp(5.7610 + 0.07142*x), 
+      add=TRUE, col = "black", lwd=5)
+
+
+plot(Predtottime ~ PC3, col= "#CFD7EE", xlim=c(-4,4), cex=3, pch=20,cex.lab=2, cex.axis=1.5,
+     ylab= "Time near Stimulus (sec)", xlab= "PC3", data=data_prey)
+curve(exp(5.75625 + 0.09543*x), 
+      add=TRUE, col = "black", lwd=5)
+
+
+#4 Number of Attacks
+ data <- read.csv("For_models.csv", header = TRUE, sep = ",")
+ data_prey <- data[data$Treatment == "prey", ]
+
+ glmm4 <- glmmTMB(PredAttack ~  PC1 
+                  + (1| River/Location_Code) ,family = nbinom2, data = data_prey)
+ glmm4 <- glmmTMB(PredAttack ~ PC2 
+                  + (1| River/Location_Code) ,family = nbinom2, data = data_prey)
+ glmm4 <- glmmTMB(PredAttack ~  PC3 
+                  + (1| River/Location_Code) ,family = nbinom2, data = data_prey)
+ 
+ summary(glmm4) 
+ 
+plot(PredAttack ~ PC1, col= "#84A59E", xlim=c(-4,4), cex=3, pch=20, cex.lab=2, cex.axis=1.5,
+     ylab= "Number of Attacks", xlab= "PC1", data=data_prey)
+curve(exp(2.8375 + 0.2405*x), 
+      add=TRUE, col = "black", lwd=5)
+
+
+plot(PredAttack ~ PC2, col= "#FFCCB1", xlim=c(-4,4), cex=3, pch=20, cex.lab=2, cex.axis=1.5,
+     ylab= "Number of Attacks", xlab= "PC2",data=data_prey)
+curve(exp(2.8267 +  0.6320*x), 
+      add=TRUE,  col = "black", lwd=5)
+
+
+plot(PredAttack ~ PC3, col= "#CFD7EE",  xlim=c(-4,4),  cex=3, pch=20,cex.lab=2, cex.axis=1.5,
+     ylab= "Number of Attacks", xlab= "PC3",data=data_prey)
+
+curve(exp(2.7938 + -0.2628*x), 
+      add=TRUE, col = "black", lwd=5)
+
+
+## 1 Presence Absence heatmap - interaction PC2*PC3 - adapted from Christos Ioannou's code
+glmm1 <- glmmTMB(totPredPA ~ PC2*PC3 + (1| River/Location_Code), family = binomial, data = data_prey)
+summary(glmm1)
+ 
+## Generate predicted values
+ fixef(glmm1) 
+ 
+ 
+ PC2_seq <- seq(from = min(data_prey$PC2), to = max(data_prey$PC2), length=50)
+ PC3_seq <- seq(from = min(data_prey$PC3), to = max(data_prey$PC3), length=50)
+ 
+ Plot_data <- expand.grid(PC2_seq,PC3_seq)
+ colnames(Plot_data) <- c("PC2","PC3")
+ 
+  class(Plot_data$PC2)
+
+  str(fixef(glmm1))
+ 
+ Predicted <- inv.logit(fixef(glmm1)$cond["PC2:PC3"] * Plot_data$PC2 * Plot_data$PC3 +
+    fixef(glmm1)$cond["PC3"] * Plot_data$PC3 +
+    fixef(glmm1)$cond["PC2"] * Plot_data$PC2 +
+    fixef(glmm1)$cond["(Intercept)"])
+ 
+ Predicted1 <- fixef(glmm1)$cond["PC2:PC3"] * Plot_data$PC2 * Plot_data$PC3 +
+                           fixef(glmm1)$cond["PC3"] * Plot_data$PC3 +
+                           fixef(glmm1)$cond["PC2"] * Plot_data$PC2 +
+                           fixef(glmm1)$cond["(Intercept)"]
+ 
+
+ range(predict(glmm1))
+ range(Predicted1)
+ range(Predicted)
+ observed_range <- range(data_prey$PredAttack)
+ observed_range
+ # CHECK: CLOSE MATCH
+ 
+ # Create a matrix with the predicted values
+ predicted_matrix <- matrix(Predicted, nrow = 50, ncol = 50, byrow = TRUE)
+ 
+# # Generate a smoother color palette
+# colors <- colorRampPalette(c("#A7C7D2", "#EBC6BE", "#E69093"))
+ 
+ # Set the font size for axis labels, tick labels,
+ par(cex.axis = 1.5, cex.lab = 1.5)
+ # Create the heatmap 
+ image(PC2_seq, PC3_seq, data=Plot_data, predicted_matrix, col = viridis(100), asp = 1)
+ 
+ # Set the line width for contour lines
+ lwd_contour <- 3
+ # Set the font size for contour line numbers
+ cex_contour <- 2
+ 
+ # Add contour lines
+ contour(PC2_seq, PC3_seq, data = Plot_data, predicted_matrix,col= "black", 
+         nlevels = 5,  add = TRUE, lwd = lwd_contour)
+
+ # bubble plot
+ ggplot(Plot_data, aes(x=PC2, y=PC3, size = Predicted)) +
+    geom_point(alpha=0.3)
+ 
+ # Sort the values
+ sorted_indices <- order(Plot_data$PC2, Plot_data$PC3)
+ sorted_x <- Plot_data$PC2[sorted_indices]
+ sorted_y <- Plot_data$PC3[sorted_indices]
+ sorted_Z <- Predicted[sorted_indices]
+ 
+ # Create the heatmap # from Christos
+ 
+ image(PC2,PC3, data=Plot_data, predicted_matrix, col = viridis(100), asp = 1)
+
+ #with ggplot
+  # Create a matrix with the predicted values
+ heatmap_data <- matrix(sorted_Z, nrow = length(unique(sorted_x)), ncol = length(unique(sorted_y)))
+ 
+ # Set the row and column names based on the sorted values
+ rownames(heatmap_data) <- unique(sorted_x)
+ colnames(heatmap_data) <- unique(sorted_y)
+ 
+ # Create the heatmap
+ heatmap(heatmap_data, col = viridis(100))
+ 
+ 
+ # Create a ggplot object and specify the data
+ heatmap <- ggplot(data = Plot_data, aes(x = PC2, y = PC3, fill = Predicted)) +
+    geom_tile(color = "white") +
+    scale_fill_viridis() +  # Use the viridis color palette
+    labs(x = "PC2", y = "PC3", fill = "Predicted")  # Set axis labels and legend title
+ 
+ # Display the heatmap
+ heatmap
+
+# end panel
+
+#################################################
+################# Guppy metrics #################
+
+## is the guppy composition (sex ratio and size) different across sites and trials?
+# guppy size is different across rivers, however this difference does not affect the 
+# behavioural response of predators.
+
+### subset prey data
+data_prey <- data[data$Treatment == "prey", ]
+
+par(mfcol = c(1, 3))
+hist(data_prey$Guppy_Number)
+hist(data_prey$Guppy_length_mm)
+hist(data_prey$Male_Female_ratio)
+par(mfcol = c(1, 1))
+
+# no difference in sex ratio between rivers
+plot(Male_Female_ratio ~ River, data = data_prey)
+kruskal.test(Male_Female_ratio ~ River, data = data_prey)
+
+# rearrange the rivers per mean guppy size
+data_prey$River <- factor(data_prey$River,
+    levels = c("caura", "turure","lopinot","st joseph","arima","aripo","guanapo"))
+
+
+plot(Guppy_length_mm ~ River, data = data_prey, ylab = "mean guppy total length (mm)")
+# larger guppies in caura, smallest in arima
+
+gm <- lm(Guppy_length_mm ~ River, data = data_prey)
+par(mfcol = c(1, 3))
+hist(residuals(gm))
+qqnorm(residuals(gm))
+qqline(residuals(gm))
+plot(residuals(gm)~fitted(gm))
+par(mfcol = c(1, 1))
+
+# significant differences in guppy size between rivers
+summary(gm)
+
+#  Coefficients:
+#                  Estimate Std. Error t value Pr(>|t|)    
+#  (Intercept)     26.7500     0.6213  43.058  < 2e-16 ***
+#  Riverturure     -1.0250     0.9823  -1.043 0.299083    
+#  Riverlopinot    -1.2500     0.8786  -1.423 0.157725    
+#  Riverst joseph  -2.9667     0.8786  -3.377 0.001024 ** 
+#  Riverarima      -2.9333     0.8786  -3.339 0.001159 ** 
+#  Riveraripo      -3.7000     0.8786  -4.211 5.31e-05 ***
+#  Riverguanapo    -3.9167     0.9823  -3.987 0.000122 ***
+#  ---
+#  Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+# Residual standard error: 2.636 on 107 degrees of freedom
+# Multiple R-squared:  0.2251,	Adjusted R-squared:  0.1816 
+# F-statistic:  5.18 on 6 and 107 DF,  p-value: 0.0001033
+
+anova(gm)
+# Response: Guppy_length_mm
+#            Df Sum Sq Mean Sq F value    Pr(>F)    
+# River       6 215.93  35.988  5.1801 0.0001033 ***
+# Residuals 107 743.37   6.947 
+
+# not needed
+pairwise <- glht(gm, linfct = mcp(River="Tukey"))
+summary(pairwise, test=adjusted("BH"))
+
+
+# have PREY only models with guppy size
+data <- read.csv("For_models.csv", header = TRUE, sep = ",")
+data_prey <- data[data$Treatment == "prey", ]
+
+g1 <- glmmTMB(totPredPA ~  Guppy_length_mm
+              + (1| River/Location_Code), family = binomial, data = data_prey)
+
+simulationOutput <- simulateResiduals(fittedModel = g1, re.form = NULL)
+testDispersion(simulationOutput)
+# dispersion = 0.52338, p-value = 0.032
+summary(g1)              
+drop1(g1, test="Chisq")  # no significance 
+# d (effect size) = estimate for fixed effect / (sqrt of sum of variances of random effects)      From Brysbaert and Stevens 2018
+d_effectSize <- 0.1201 /sqrt(50.4528 + 0.6297)   # 0.01680378
+
+r.squaredGLMM(g1)
+
+g2 <- glmmTMB(Predvisits ~ Guppy_length_mm
+              + (1| River/Location_Code), family = nbinom2, data = data_prey)
+
+simulationOutput <- simulateResiduals(fittedModel = g2, re.form = NULL)
+testDispersion(simulationOutput)
+# dispersion = 0.68769, p-value = 0.64
+summary(g2)                 
+drop1(g2, test="Chisq")    # no significance
+# d (effect size) = estimate for fixed effect / (sqrt of sum of variances of random effects)      From Brysbaert and Stevens 2018
+d_effectSize <- 0.06007 /sqrt(0.2281 + 0.1063)   # 0.1038782
+
+g3 <- glmmTMB(PredFirstV ~ Guppy_length_mm
+              + (1| River/Location_Code), family = nbinom2, data = data_prey)
+
+simulationOutput <- simulateResiduals(fittedModel = g3, re.form = NULL)
+testDispersion(simulationOutput)
+# dispersion =   1.0377, p-value = 0.744
+summary(g3)                
+drop1(g3, test="Chisq") # no significance
+# d (effect size) = estimate for fixed effect / (sqrt of sum of variances of random effects)      From Brysbaert and Stevens 2018
+d_effectSize <- 0.00675 /sqrt(0.08681 + 0.07299)   # 0.01688556
+
+g4 <- glmmTMB(Predtottime ~ Guppy_length_mm
+               + (1| River/Location_Code), ziformula=~1 ,family = nbinom2, data = data_prey)
+
+simulationOutput <- simulateResiduals(fittedModel = g4, re.form = NULL)
+testDispersion(simulationOutput)
+# dispersion = 0.26323, p-value = 0.376
+summary(g4)                
+drop1(g4, test="Chisq") # no significance
+# d (effect size) = estimate for fixed effect / (sqrt of sum of variances of random effects)      From Brysbaert and Stevens 2018
+d_effectSize <- 0.05014 /sqrt(2.165e-08 + 7.075e-01)   # 0.05961027
+
+
+g5 <- glmmTMB(PredAttack ~ Guppy_length_mm
+               + (1| River/Location_Code) ,family = nbinom2, data = data_prey)
+
+simulationOutput <- simulateResiduals(fittedModel = g5, re.form = NULL)
+testDispersion(simulationOutput)
+# dispersion =   0.0021315, p-value = 0.288
+summary(g5)                
+drop1(g5, test="Chisq") # no significance
+# d (effect size) = estimate for fixed effect / (sqrt of sum of variances of random effects)      From Brysbaert and Stevens 2018
+d_effectSize <- 0.1383 /sqrt(4.7957 + 0.7369)   # 0.05879732
+
+
+g6 <- glmmTMB(LatencyPredFirstA ~ Guppy_length_mm 
+               + (1| River/Location_Code) , ziformula=~1 ,family = nbinom2, data = data_prey)
+
+simulationOutput <- simulateResiduals(fittedModel = g6, re.form = NULL)
+testDispersion(simulationOutput)
+# dispersion =  1.2295e-06, p-value = 0.184
+summary(g6)                
+drop1(g6, test="Chisq") # no significance
+r.squaredGLMM(g6)
+
+####################################################
+################# Data exploration #################
+
+# these plots and general checks were done before the stats, 
+# only copying the code here so it is all in one script.
+
+###Sediment type 
+
+### Results: Sediment type is strongly correlated with all but 2 env variables (Turb, Temp)
+#            for this reason I'm going to exclude it from the analysis.
+
+### subset prey data
+data_prey <- data[data$Treatment == "prey", ]
+head(data_prey)
+ggpairs(data[, c(36, 8:15)]) # do not use ggpairs as even if i specify spearman it prints out pearson
+
+cor.test(data$Log_Flow_ms, data$Depth_cm, method= "pearson" )
+cor.test(data$Log_Flow_ms, data$Depth_cm, method= "spearman" ) # if not normally distributed
+
+cor.test(data$Log_Flow_ms, data$LOG_DO_mgL, method= "pearson" )
+cor.test(data$Log_Flow_ms, data$LOG_DO_mgL, method= "spearman" ) # if not normally distributed
+
+# adapted from Christos
+
+#install.packages("psych")
+
+pairs.panels(cbind(data[8:15])
+             ,method = "spearman", 
+             # correlation method
+             cex.cor = 1, cex.axis = 1.2, hist.col = "#B6E5D3",rug = F,scale = F,density = T,  
+             # density plots
+             ellipses = F, smoother = F,
+             # correlation ellipses
+             cex.labels = 1.2, stars=TRUE)
+
+# use code above!
+
+cor.mat <- data %>% cor_mat(Log_Flow_ms, Depth_cm, Width_m,  LOG_Turb_mean_NTU, LOG_DO_mgL, LOG_Temp_mean_C, LOG_Light_mean_lux,
+                 LOG_Canopy_cover, Min_from_sunrise, method="spearman")
+# Significance levels
+cor.mat %>% cor_get_pval()
+
+# Visualize
+#::::::::::::::::::::::::::::::::::::::::::
+# Insignificant correlations are marked by crosses
+cor.mat %>%
+  cor_reorder() %>%
+  pull_lower_triangle() %>%
+  cor_plot(label = TRUE)
+
+# Gather/collapse correlation matrix into long format
+#::::::::::::::::::::::::::::::::::::::::::
+cor.mat %>% cor_gather()
+
+citation("rstatix")
+
+################################################################################################
+data <- read.csv("Trini_22.csv", header = TRUE, sep = ",")
+head(data)
+data$Sediment_type <- factor(data$Sediment_type)
+#rearrange the rivers
+data$River <- factor(data$River,
+                          levels = c("st joseph", "caura","lopinot","arima","guanapo","aripo", "turure"))
+par(mfrow=c(1,1))
+hist(data$Sediment_numeric, breaks = 6) # 1= silt, 2= sand, 3=pebbles, 4=rock, 5= leaf_litter
+
+par(mfcol = c(1,1))
+par(mar = c(4.5, 3, 1, 1)) # Set the margin on all sides to 5 (bottom, left, top, right)
+par(pty="s") # makes plot square
+par(pty="m") 
+
+label=c("leaf litter","pebbles","rock", "sand", "silt")
+
+boxplot(Turb_mean_NTU ~ Sediment_type, data = data, names=F, cex.axis=2, cex.lab=2,
+        ylab = "mean turbidity (NTU)", xlab = " ")
+boxplot(Max_Flow_ms ~ Sediment_type, data = data,names=label, cex.axis=2, cex.lab=2,
+        ylab = "mean river flow (m/s)", xlab = "sediment type")
+boxplot(Depth_cm ~ Sediment_type, data = data, names=F, cex.axis=2, cex.lab=2,
+        ylab = "mean depth (cm)", xlab = " ")
+boxplot(Width_m ~ Sediment_type, data = data, names=label, cex.axis=2, cex.lab=2,
+        ylab = "mean river width (m)", xlab = "sediment type")
+
+boxplot(DO_mgL ~ Sediment_type, data = data, names=F, cex.axis=2, cex.lab=2,
+        ylab = "mean dissolved oxygen (mgL)", xlab = " ")
+boxplot(Temp_mean_C ~ Sediment_type, data = data, names=label, cex.axis=2, cex.lab=2,
+        ylab = "mean temperature (°C)", xlab = "sediment type")
+boxplot(Light_mean_lux ~ Sediment_type, data = data, names=F, cex.axis=2, cex.lab=2,
+        ylab = "mean light intensity (lux)", xlab = " ")
+boxplot(Canopy_cover ~ Sediment_type, data = data, names=label, cex.axis=2, cex.lab=2,
+        ylab = "mean canopy cover (%)", xlab = "sediment type")
+
+par(mfcol = c(1, 1))
+
+boxplot(LOG_Turb_mean_NTU ~ River, data = data, cex.axis=1.5, cex.lab=1.5)
+boxplot(Log_Flow_ms ~ River, data = data, cex.axis=1.5, cex.lab=1.5)
+boxplot(Depth_cm ~ River, data = data, cex.axis=1.5, cex.lab=1.5)
+boxplot(Width_m ~ River, data = data, cex.axis=1.5, cex.lab=1.5)
+boxplot(LOG_DO_mgL ~ River, data = data, cex.axis=1.5, cex.lab=1.5)
+boxplot(LOG_Temp_mean_C ~ River, data = data, cex.axis=1.5, cex.lab=1.5)
+boxplot(LOG_Light_mean_lux ~ River, data = data, cex.axis=1.5, cex.lab=1.5)
+boxplot(LOG_Canopy_cover ~ River, data = data, cex.axis=1.5, cex.lab=1.5)
+
+par(mar = c(4.5, 6, 1, 1)) # (bottom, left, top, right)
+par(pty="m") 
+
+boxplot(Turb_mean_NTU ~ River, data = data, names=F, cex.axis=2.5, cex.lab=2.5,
+        ylab = "mean turbidity (NTU)", xlab = " ")
+boxplot(Max_Flow_ms ~ River, data = data, cex.axis=2.5, cex.lab=2.5,
+        ylab = "mean river flow (m/s)", xlab = "river")
+boxplot(Depth_cm ~ River, data = data, names=F, cex.axis=2.5, cex.lab=2.5,
+        ylab = "mean depth (cm)", xlab = " ")
+boxplot(Width_m ~ River, data = data, cex.axis=2.5, cex.lab=2.5,
+        ylab = "mean river width (m)", xlab = "river")
+
+boxplot(DO_mgL ~ River, data = data, names=F, cex.axis=2.5, cex.lab=2.5,
+        ylab = "mean dissolved oxygen (mgL)", xlab = " ")
+boxplot(Temp_mean_C ~ River, data = data, cex.axis=2.5, cex.lab=2.5,
+        ylab = "mean temperature (°C)", xlab = "river")
+boxplot(Light_mean_lux ~ River, data = data, names=F, cex.axis=2.5, cex.lab=2.5,
+        ylab = "mean light intensity (lux)", xlab = " ")
+boxplot(Canopy_cover ~ River, data = data, cex.axis=2.5, cex.lab=2.5,
+        ylab = "mean canopy cover (%)", xlab = "river")
+
+
+
+# check for correlation between all my env parameters and sediment type
+# I'm using Kruskal-wallis test because the data doesn't fit One Way anova assumptions, 
+# and the categorical variable is not dichotomous.
+
+kruskal.test(LOG_Turb_mean_NTU ~ Sediment_type, data = data)
+# Kruskal-Wallis chi-squared = 7.3329, df = 4, p-value = 0.1193      # uncorrelated
+
+kruskal.test(Log_Flow_ms ~ Sediment_type, data = data)
+#Kruskal-Wallis chi-squared = 24.718, df = 4, p-value = 5.732e-05    # strongly correlated
+
+kruskal.test(Depth_cm ~ Sediment_type, data = data)
+#Kruskal-Wallis chi-squared = 9.9836, df = 4, p-value = 0.0407       # correlated
+
+kruskal.test(Width_m ~ Sediment_type, data = data)
+#Kruskal-Wallis chi-squared = 22.531, df = 4, p-value = 0.0001571    # correlated
+
+kruskal.test(LOG_DO_mgL ~ Sediment_type, data = data)
+#Kruskal-Wallis chi-squared = 13.996, df = 4, p-value = 0.007307     # correlated
+
+kruskal.test(LOG_Temp_mean_C ~ Sediment_type, data = data)
+#Kruskal-Wallis chi-squared = 2.4107, df = 4, p-value = 0.6607       # uncorrelated
+
+kruskal.test(LOG_Light_mean_lux ~ Sediment_type, data = data)
+#Kruskal-Wallis chi-squared = 39.152, df = 4, p-value = 6.48e-08     # strongly correlated
+
+kruskal.test(LOG_Canopy_cover ~ Sediment_type, data = data)
+#Kruskal-Wallis chi-squared = 41.29, df = 4, p-value = 2.341e-08     # strongly correlated
+
+
+### Predator species across rivers and sediment types
+
+data2 <- read.csv("SpeciesRiverSediment.csv", header = TRUE, sep = ",")
+head(data2)
+
+plot(data2$Sediment_type, data2$PredSpecies)
+
+par(mfcol = c(1, 2))
+# stacked bar chart
+ggplot(data2, 
+       aes(x = River, 
+           fill = PredSpecies)) + 
+  geom_bar(position = "stack") +
+  scale_fill_brewer(palette = "Pastel1") +
+  theme_minimal(base_size = 14)
+
+# do env variables vary across rivers?
+ kruskal.test(LOG_Temp_mean_C ~ River, data = data)
+# Kruskal-Wallis chi-squared = 16.562, df = 6, p-value = 0.01104
+d <- dunn_test(LOG_Temp_mean_C ~ River, data=data, p.adjust.method ="BH") # st joseph
+
+
+kruskal.test(Log_Flow_ms ~ River, data = data)
+# Kruskal-Wallis chi-squared = 83.033, df = 6, p-value = 8.432e-16
+d <- dunn_test(Log_Flow_ms ~ River, data=data, p.adjust.method ="BH") # caura, guanapo, turure
+
+kruskal.test(Depth_cm ~ River, data = data)
+# Kruskal-Wallis chi-squared = 16.707, df = 6, p-value = 0.01042
+d <- dunn_test(Depth_cm ~ River, data=data, p.adjust.method ="BH") # guanapo with arima
+
+kruskal.test(Width_m ~ River, data = data)
+# Kruskal-Wallis chi-squared = 24.465, df = 6, p-value = 0.0004288
+d <- dunn_test(Width_m ~ River, data=data, p.adjust.method ="BH") # arima and caura
+
+kruskal.test(LOG_DO_mgL ~ River, data = data)
+# Kruskal-Wallis chi-squared = 45.593, df = 6, p-value = 3.568e-08
+d <- dunn_test(LOG_DO_mgL ~ River, data=data, p.adjust.method ="BH") # aripo and st joseph
+
+kruskal.test(LOG_Light_mean_lux ~ River, data = data)
+# Kruskal-Wallis chi-squared = 17.218, df = 6, p-value = 0.008515
+d <- dunn_test(LOG_Light_mean_lux ~ River, data=data, p.adjust.method ="BH") # arima (with turure and with aripo)
+
+kruskal.test(LOG_Canopy_cover ~ River, data = data)
+# Kruskal-Wallis chi-squared = 44.213, df = 6, p-value = 6.706e-08
+d <- dunn_test(LOG_Canopy_cover ~ River, data=data, p.adjust.method ="BH") # arima and guanapo
+
+kruskal.test(LOG_Turb_mean_NTU ~ River, data = data)
+# Kruskal-Wallis chi-squared = 67.761, df = 6, p-value = 1.176e-12
+d <- dunn_test(LOG_Turb_mean_NTU ~ River, data=data, p.adjust.method ="BH") # arima aripo
+summary(d)
+
+#is there a temperature gradient across locations within a river?
+data <- read.csv("For_models.csv", header = TRUE, sep = ",")
+boxplot(LOG_Temp_mean_C ~ Location_Code, data = data, cex.axis=1.5, cex.lab=1.5)
+plot(LOG_Temp_mean_C ~ UpDownStream, data=data)
+
+kruskal.test(LOG_Temp_mean_C ~ UpDownStream, data = data)
+dunn_test(LOG_Temp_mean_C ~ UpDownStream, data=data, p.adjust.method ="BH")
+
+
+# how about turbidity
+plot(LOG_Turb_mean_NTU ~ UpDownStream, data=data)
+kruskal.test(LOG_Turb_mean_NTU ~ UpDownStream, data = data) # there are differences (mid different to up and down) but no pattern
+dunn_test(LOG_Turb_mean_NTU ~ UpDownStream, data=data, p.adjust.method ="BH")
+
+#### species x location
+ggplot(data2, 
+       aes(x = Location_Code, 
+           fill = PredSpecies)) + 
+  geom_bar(position = "stack") +
+  scale_fill_brewer(palette = "Pastel1") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+data2$River <- factor(data2$River,
+                          levels = c("st joseph", "caura","lopinot","arima","guanapo", "aripo", "turure"))
+
+plot1 <- ggplot(data2, 
+       aes(x = River, 
+           fill = PredSpecies)) + 
+  geom_bar(position = "stack") +
+  scale_fill_brewer(palette = "Pastel1") +
+  theme_minimal(base_size = 20) +
+  theme(legend.position = "none")
+
+# bar plot, with each bar representing 100%
+
+ ggplot(data2, 
+       aes(x = River, 
+           fill = Sediment_type)) + 
+  geom_bar(position = "fill") +
+  scale_fill_brewer(palette = "Pastel1") +
+  labs(y = "proportion") +
+  theme_minimal(base_size = 20)
+
+plot2 <- ggplot(data2, 
+       aes(x = Sediment_type, 
+           fill = PredSpecies)) + 
+  geom_bar(position = "stack") +
+  scale_fill_brewer(palette = "Pastel1") +
+  theme_minimal(base_size = 20)
+
+ggarrange(plot1, plot2, ncol=2, nrow=1)
+
+##### sediment type and species
+
+chisq.test(data2$Sediment_type, data2$PredSpecies, correct = FALSE)
+# Pearson's Chi-squared test
+
+# data:  data2$Sediment_type and data2$PredSpecies
+# X-squared = 78.152, df = 32, p-value = 9.821e-06
+### predator species are dependent on sediment type.
+
+
+#########################################################################
+########################### descriptive plots ###########################
+#########################################################################
+data <- read.csv("For_models.csv", header = TRUE, sep = ",")
+head(data)
+
+### behavioural data
+par(mfcol = c(2, 5))
+hist(data$Predvisits, xlab = "Number of visits")
+hist(data_prey$Predvisits, xlab = "Number of visits")
+
+hist(data$PredFirstV, xlab = "Time first visit (sec)")
+hist(data_prey$PredFirstV, xlab = "Time first visit (sec)")
+
+hist(data$Predtottime, xlab = "Tot Time")
+hist(data_prey$Predtottime, xlab = "Tot Time")
+
+hist(data$PredAttack, xlab = "Number of attacks")
+hist(data_prey$PredAttack, xlab = "Number of attacks")
+
+hist(data$LatencyPredFirstA, xlab = "Latency to first attack (sec)")
+hist(data_prey$LatencyPredFirstA, xlab = "Latency to first attack (sec)")
+par(mfcol = c(1, 1))
+
+pc1 <- lm(Predtottime ~ PC1, data=data)
+pc2 <- lm(Predtottime ~ PC2, data=data)
+pc3 <- lm(Predtottime ~ PC3, data=data)
+plot(Predtottime ~ PC1, data=data)
+abline(pc1)
+points(Predtottime ~ PC2, data=data, col="red")
+abline(pc2, col="red")
+points(Predtottime ~ PC3, data=data, col="blue")
+abline(pc3, col="blue")
+
+pc1 <- lm(PredAttack ~ PC1, data=data)
+pc2 <- lm(PredAttack ~ PC2, data=data)
+pc3 <- lm(PredAttack ~ PC3, data=data)
+plot(PredAttack ~ PC1, data=data)
+abline(pc1)
+points(PredAttack ~ PC2, data=data, col="red")
+abline(pc2, col="red")
+points(PredAttack ~ PC3, data=data, col="blue")
+abline(pc3, col="blue")
+
+pc1 <- lm(Predvisits ~ PC1, data=data)
+pc2 <- lm(Predvisits ~ PC2, data=data)
+pc3 <- lm(Predvisits ~ PC3, data=data)
+plot(Predvisits ~ PC1, data=data)
+abline(pc1)
+points(Predvisits ~ PC2, data=data, col="red")
+abline(pc2, col="red")
+points(Predvisits ~ PC3, data=data, col="blue")
+abline(pc3, col="blue")
+
+plot(PC2 ~ LOG_Temp_mean_C, data=data)
+plot(PC2 ~ LOG_DO_mgL, data=data)
+plot(PC2 ~ Log_Flow_ms, data=data)
+
+plot(PC3 ~ LOG_Turb_mean_NTU, data=data)
+plot(PC3 ~ Depth_cm, data=data)
+
+plot(PC1 ~ LOG_Light_mean_lux, data=data)
+plot(PC1 ~ LOG_Canopy_cover, data=data)
+plot(PC1 ~ Width_m, data=data)
+
+
+### Behavriours and Turbidity
+par(mfcol = c(2, 3))
+hist(data$LOG_Turb_mean_NTU, col = "blue")
+
+plot1 <- lm(Predvisits ~ LOG_Turb_mean_NTU, data=data)
+plot(Predvisits ~ LOG_Turb_mean_NTU, data=data)
+abline(plot1, col="blue")
+
+plot2<- lm(PredFirstV ~ LOG_Turb_mean_NTU, data=data)
+plot(PredFirstV ~ LOG_Turb_mean_NTU, data=data)
+abline(plot2, col="blue")
+
+plot3 <- lm(Predtottime ~ LOG_Turb_mean_NTU, data=data)
+plot(Predtottime ~ LOG_Turb_mean_NTU, data=data)
+abline(plot3, col="blue")
+
+plot4 <- lm(PredAttack ~ LOG_Turb_mean_NTU, data=data)
+plot(PredAttack~ LOG_Turb_mean_NTU, data=data)
+abline(plot4, col="blue")
+
+plot5 <- lm(LatencyPredFirstA ~ LOG_Turb_mean_NTU, data=data)
+plot(LatencyPredFirstA ~ LOG_Turb_mean_NTU, data=data)
+abline(plot5, col="blue")
+
+### Behavriours and Temperature
+hist(data$LOG_Temp_mean_C, col = "red")
+
+plot1 <- lm(Predvisits ~ LOG_Temp_mean_C, data=data)
+plot(Predvisits ~ LOG_Temp_mean_C, data=data)
+abline(plot1, col="red")
+
+plot2<- lm(PredFirstV ~ LOG_Temp_mean_C, data=data)
+plot(PredFirstV ~ LOG_Temp_mean_C, data=data)
+abline(plot2, col="red")
+
+plot3 <- lm(Predtottime ~ LOG_Temp_mean_C, data=data)
+plot(Predtottime ~ LOG_Temp_mean_C, data=data)
+abline(plot3, col="red")
+
+plot4 <- lm(PredAttack ~ LOG_Temp_mean_C, data=data)
+plot(PredAttack~ LOG_Temp_mean_C, data=data)
+abline(plot4, col="red")
+
+plot5 <- lm(LatencyPredFirstA ~ LOG_Temp_mean_C, data=data)
+plot(LatencyPredFirstA ~ LOG_Temp_mean_C, data=data)
+abline(plot5, col="red")
+
+### Behavriours and Flow
+hist(data$Log_Flow_ms, col = "light blue")
+
+plot1 <- lm(Predvisits ~ Log_Flow_ms, data=data)
+plot(Predvisits ~ Log_Flow_ms, data=data)
+abline(plot1, col="light blue")
+
+plot2<- lm(PredFirstV ~ Log_Flow_ms, data=data)
+plot(PredFirstV ~ Log_Flow_ms, data=data)
+abline(plot2, col="light blue")
+
+plot3 <- lm(Predtottime ~ Log_Flow_ms, data=data)
+plot(Predtottime ~ Log_Flow_ms, data=data)
+abline(plot3, col="light blue")
+
+plot4 <- lm(PredAttack ~ Log_Flow_ms, data=data)
+plot(PredAttack~ Log_Flow_ms, data=data)
+abline(plot4, col="light blue")
+
+plot5 <- lm(LatencyPredFirstA ~ Log_Flow_ms, data=data)
+plot(LatencyPredFirstA ~ Log_Flow_ms, data=data)
+abline(plot5, col="light blue")
+
+### Behavriours and Depth
+hist(data$Depth_cm, col = "brown")
+
+plot1 <- lm(Predvisits ~ Depth_cm, data=data)
+plot(Predvisits ~ Depth_cm, data=data)
+abline(plot1, col="brown")
+
+plot2<- lm(PredFirstV ~ Depth_cm, data=data)
+plot(PredFirstV ~ Depth_cm, data=data)
+abline(plot2, col="brown")
+
+plot3 <- lm(Predtottime ~ Depth_cm, data=data)
+plot(Predtottime ~ Depth_cm, data=data)
+abline(plot3, col="brown")
+
+plot4 <- lm(PredAttack ~ Depth_cm, data=data)
+plot(PredAttack~ Depth_cm, data=data)
+abline(plot4, col="brown")
+
+plot5 <- lm(LatencyPredFirstA ~ Depth_cm, data=data)
+plot(LatencyPredFirstA ~ Depth_cm, data=data)
+abline(plot5, col="brown")
+
+### Behavriours and Width
+hist(data$Width_m, col = "orange", breaks = 4)
+
+plot1 <- lm(Predvisits ~ Width_m, data=data)
+plot(Predvisits ~ Width_m, data=data)
+abline(plot1, col="orange")
+
+plot2<- lm(PredFirstV ~ Width_m, data=data)
+plot(PredFirstV ~ Width_m, data=data)
+abline(plot2, col="orange")
+
+plot3 <- lm(Predtottime ~ Width_m, data=data)
+plot(Predtottime ~ Width_m, data=data)
+abline(plot3, col="orange")
+
+plot4 <- lm(PredAttack ~ Width_m, data=data)
+plot(PredAttack~ Width_m, data=data)
+abline(plot4, col="orange")
+
+plot5 <- lm(LatencyPredFirstA ~ Width_m, data=data)
+plot(LatencyPredFirstA ~ Width_m, data=data)
+abline(plot5, col="orange")
+
+### Behavriours and DO
+hist(data$LOG_DO_mgL, col = "purple", breaks = 4)
+
+plot1 <- lm(Predvisits ~ LOG_DO_mgL, data=data)
+plot(Predvisits ~ LOG_DO_mgL, data=data)
+abline(plot1, col="purple")
+
+plot2<- lm(PredFirstV ~ LOG_DO_mgL, data=data)
+plot(PredFirstV ~ LOG_DO_mgL, data=data)
+abline(plot2, col="purple")
+
+plot3 <- lm(Predtottime ~ LOG_DO_mgL, data=data)
+plot(Predtottime ~ LOG_DO_mgL, data=data)
+abline(plot3, col="purple")
+
+plot4 <- lm(PredAttack ~ LOG_DO_mgL, data=data)
+plot(PredAttack~ LOG_DO_mgL, data=data)
+abline(plot4, col="purple")
+
+plot5 <- lm(LatencyPredFirstA ~ LOG_DO_mgL, data=data)
+plot(LatencyPredFirstA ~ LOG_DO_mgL, data=data)
+abline(plot5, col="purple")
+
+### Behavriours and Light intensity
+hist(data$LOG_Light_mean_lux, col = "yellow", breaks = 4)
+
+plot1 <- lm(Predvisits ~ LOG_Light_mean_lux, data=data)
+plot(Predvisits ~ LOG_Light_mean_lux, data=data)
+abline(plot1, col="yellow")
+
+plot2<- lm(PredFirstV ~ LOG_Light_mean_lux, data=data)
+plot(PredFirstV ~ LOG_Light_mean_lux, data=data)
+abline(plot2, col="yellow")
+
+plot3 <- lm(Predtottime ~ LOG_Light_mean_lux, data=data)
+plot(Predtottime ~ LOG_Light_mean_lux, data=data)
+abline(plot3, col="yellow")
+
+plot4 <- lm(PredAttack ~ LOG_Light_mean_lux, data=data)
+plot(PredAttack~ LOG_Light_mean_lux, data=data)
+abline(plot4, col="yellow")
+
+plot5 <- lm(LatencyPredFirstA ~ LOG_Light_mean_lux, data=data)
+plot(LatencyPredFirstA ~ LOG_Light_mean_lux, data=data)
+abline(plot5, col="yellow")
+
+### Behavriours and Canopy cover
+hist(data$LOG_Canopy_cover, col = "green", breaks = 4)
+
+plot1 <- lm(Predvisits ~ LOG_Canopy_cover, data=data)
+plot(Predvisits ~ LOG_Canopy_cover, data=data)
+abline(plot1, col="green")
+
+plot2<- lm(PredFirstV ~ LOG_Canopy_cover, data=data)
+plot(PredFirstV ~ LOG_Canopy_cover, data=data)
+abline(plot2, col="green")
+
+plot3 <- lm(Predtottime ~ LOG_Canopy_cover, data=data)
+plot(Predtottime ~ LOG_Canopy_cover, data=data)
+abline(plot3, col="green")
+
+plot4 <- lm(PredAttack ~ LOG_Canopy_cover, data=data)
+plot(PredAttack~ LOG_Canopy_cover, data=data)
+abline(plot4, col="green")
+
+plot5 <- lm(LatencyPredFirstA ~ LOG_Canopy_cover, data=data)
+plot(LatencyPredFirstA ~ LOG_Canopy_cover, data=data)
+abline(plot5, col="green")
+
+
+##### Quarry presence in relation to Turbidity levels
+
+plot(LOG_Turb_mean_NTU ~ Quarry, data=data)
+                                              
+
+mq <- lm(LOG_Turb_mean_NTU ~ Quarry, data=data)
+par(mfcol = c(1, 3))
+hist(residuals(mq))
+qqnorm(residuals(mq))                  # doesn't meet assumptions
+qqline(residuals(mq))
+plot(residuals(mq)~fitted(mq))
+
+# Mann-Whitney U-Test > compares medians of 2 independent groups
+wilcox.test(LOG_Turb_mean_NTU ~ Quarry, data=data)
+# W = 7017.5, p-value = 0.1519  # no difference
+
+###### Quarry presence in relation to sediment type
+
+plot (Sediment_type ~ Quarry, data=data)
+
+Observed_silt = c(22, 7)
+Expected_silt_proportions= c(0.5, 0.5)
+chisq.test(x = Observed_silt, p = Expected_silt_proportions)
+
+# Chi-squared test for given probabilities
+
+# data:  Observed_silt
+# X-squared = 7.7586, df = 1, p-value = 0.00534
+
+# The proportion of sites with silty substrate is higher than we would expect 
+# from chance, assuming an equal proportion of silty sites across river with and without Quarry upstream 
+# (Chi-squared test: chi-squared = 7.75, df = 1, P = 0.005).
+citation("stats")
+
+# Brainerd-Robinson (similarity between assemblages)
+BR <- similarity(data3, method = "brainerd")
+plot_spot(BR, freq= TRUE)
+plot(BR)
+
+
+# untransformed data for descriptive stats
+data <- read.csv("Trini_22.csv", header = TRUE, sep = ",")
+head(data)
+data_1 <- data[data$River == "st joseph", ]
+summary(data_1)
+
+tapply(data, data$Location_Code, summary)
+
+summary_stats <- data %>%
+   group_by(Location_Code) %>%
+   summarise(
+       minA = min(Depth_cm),
+       meanA = mean(Depth_cm),
+       maxA = max(Depth_cm),
+       
+       minB = min(Width_m),
+       meanB = mean(Width_m),
+       maxB = max(Width_m),
+       
+       minC = min(Max_Flow_ms),
+       meanC = mean(Max_Flow_ms),
+       maxC = max(Max_Flow_ms),
+       
+       minD = min(Canopy_cover),
+       meanD = mean(Canopy_cover),
+       maxD = max(Canopy_cover),
+       
+       minE = min(Light_mean_lux),
+       meanE = mean(Light_mean_lux),
+       maxE = max(Light_mean_lux),
+       
+       minF = min(DO_mgL),
+       meanF = mean(DO_mgL),
+       maxF = max(DO_mgL),
+       
+       minG = min(Temp_mean_C),
+       meanG = mean(Temp_mean_C),
+       maxG = max(Temp_mean_C),
+       
+       minH = min(Turb_mean_NTU),
+       meanH = mean(Turb_mean_NTU),
+       maxH = max(Turb_mean_NTU),
+       
+   )
+# write.csv(summary_stats, file = "summary_stats.csv", row.names = FALSE)
+
+data$River <- factor(data$River,
+                          levels = c("st joseph", "caura", "lopinot","arima","guanapo","aripo", "turure"))
+par(mfcol = c(2, 4))
+plot(Turb_mean_NTU ~ River, data=data, asp = 1)
+plot(Temp_mean_C ~ River, data=data, asp = 1)
+plot(Max_Flow_ms ~ River, data=data, asp = 1)
+plot(DO_mgL ~ River, data=data, asp = 1)
+plot(Light_mean_lux ~ River, data=data, asp = 1)
+plot(Canopy_cover ~ River, data=data, asp = 1)
+plot(Width_m  ~ River, data=data, asp = 1)
+plot(Depth_cm ~ River, data=data, asp = 1)
+
+### calculate predation pressure as Tot time near stimulus / number of attacks for each predator species
+data <- read.csv("pred_press.csv", header = TRUE, sep = ",")
+
+ggplot(data, aes(x = Species, y = N, fill = Behaviour)) +
+  geom_col(position = "fill")
+
+data <- read.csv("Predator_pressure.csv", header = TRUE, sep = ",")
+data_prey <- data[data$treatment == "prey", ]
+data_cont <- data[data$treatment == "control", ]
+
+data$species <- factor(data$species,
+                     levels = c("C frenata", "A pulcher", "A hartii","R dientonito","H malabaricus ","H taenius", "A bimaculatus", "R quelen"))
+
+data_prey %>%mutate(
+  Percentage = ifelse(Behaviour=="time", Percentage*(-1),
+                        Percentage*1))%>%
+  ggplot(aes(x = Percentage, y = species, fill=Behaviour)) +
+  geom_bar(stat = "identity") +
+  scale_fill_brewer(type = "seq",palette = 7) 
+
+data_cont %>%mutate(
+  Percentage = ifelse(Behaviour=="time", Percentage*(-1),
+                      Percentage*1))%>%
+  ggplot(aes(x = Percentage, y = species, fill=Behaviour)) +
+  geom_bar(stat = "identity") +
+  scale_fill_brewer(type = "seq",palette = 5) 
+
+plot1 <- data_prey %>%mutate(
+  Tot = ifelse(Behaviour=="time", Tot*(-1),
+               Tot*1))%>%
+  ggplot(aes(x = Tot, y = species, fill=Behaviour)) +
+  geom_bar(stat = "identity") +
+  scale_fill_brewer(type = "seq",palette = "Pastel1")  +
+  theme_minimal(base_size = 20) +
+  theme(legend.position = "none")
+
+plot2 <- data_cont %>%mutate(
+  Tot = ifelse(Behaviour=="time", Tot*(-1),
+               Tot*1))%>%
+  ggplot(aes(x = Tot, y = species, fill=Behaviour)) +
+  geom_bar(stat = "identity") +
+  scale_fill_brewer(type = "seq",palette = "Pastel1") +
+  theme_minimal(base_size = 20) 
+
+ggarrange(plot1, plot2, ncol=2, nrow=1)
+

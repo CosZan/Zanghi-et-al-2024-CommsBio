@@ -1,0 +1,21 @@
+Datasets included:
+1. env.csv
+   datasheet containing the 8 environmental parameters used in the gllvm analysis (script 1 line 159)
+2. For_models.csv
+   full data for GLMM  (script 1 line 406)
+3. pca_data.csv
+   Principal Components 1, 2 and 3 to be used as raw data.
+4. pred_press.csv
+   summary data for seconds spent by each species near stimulus and number of attacks
+5. SpeciesRiverSediment.csv
+   sediment type and species association for each sampling location
+6. spp.csv
+    presence/absence data used in the gllvm
+7. Trini_22.csv
+    full data set
+
+Scripts included:
+1. Full Analysis R code Aug 2023.txt 
+        full script for all the statistical analyses described in Zanghi et al Aug 2023
+2. Canopy Cover extraction code for imageJ.txt
+        code detailing the extraction procedure for the measurement of canopy cover (%) from images.

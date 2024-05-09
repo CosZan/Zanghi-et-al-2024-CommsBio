@@ -1,0 +1,430 @@
+River,Location_Code,Sediment_type,Sediment_numeric,PredSpecies
+turure,7TuA1,sand,2,Hemibrycon_taeniurus
+turure,7TuA2,leaf_litter,5,Hemibrycon_taeniurus
+turure,7TuA2,leaf_litter,5,Anablepsoides_hartii
+turure,7TuA3,silt,1,Hemibrycon_taeniurus
+turure,7TuA1,sand,2,Hemibrycon_taeniurus
+turure,7TuA2,leaf_litter,5,Hemibrycon_taeniurus
+turure,7TuA3,silt,1,Hemibrycon_taeniurus
+turure,7TuA3,silt,1,Anablepsoides_hartii
+guanapo,5GuB2,pebbles,3,Andinoacara_pulcher
+guanapo,5GuB2,pebbles,3,Hemibrycon_taeniurus
+guanapo,5GuB3,rock,4,Hemibrycon_taeniurus
+guanapo,5GuB3,rock,4,Andinoacara_pulcher
+guanapo,5GuB1,pebbles,3,Andinoacara_pulcher
+guanapo,5GuB1,pebbles,3,Hemibrycon_taeniurus
+guanapo,5GuB2,pebbles,3,Hemibrycon_taeniurus
+guanapo,5GuB3,rock,4,Andinoacara_pulcher
+guanapo,5GuB3,rock,4,Hemibrycon_taeniurus
+guanapo,5GuB3,rock,4,Astyanax_bimaculatus
+guanapo,5GuB1,pebbles,3,Hemibrycon_taeniurus
+st joseph,1StA1,silt,1,Andinoacara_pulcher
+st joseph,1StA1,silt,1,Crenicichla_frenata
+st joseph,1StA2,rock,4,Andinoacara_pulcher
+st joseph,1StA2,rock,4,Crenicichla_frenata
+st joseph,1StA2,rock,4,Astyanax_bimaculatus
+st joseph,1StA3,sand,2,Andinoacara_pulcher
+st joseph,1StA3,sand,2,Crenicichla_frenata
+st joseph,1StA3,sand,2,Astyanax_bimaculatus
+st joseph,1StA1,silt,1,Andinoacara_pulcher
+st joseph,1StA1,silt,1,Crenicichla_frenata
+st joseph,1StA1,silt,1,Astyanax_bimaculatus
+st joseph,1StA2,rock,4,Andinoacara_pulcher
+st joseph,1StA2,rock,4,Crenicichla_frenata
+st joseph,1StA3,sand,2,Andinoacara_pulcher
+st joseph,1StA3,sand,2,Crenicichla_frenata
+st joseph,1StA3,sand,2,Astyanax_bimaculatus
+st joseph,1StB1,leaf_litter,5,Andinoacara_pulcher
+st joseph,1StB1,leaf_litter,5,Crenicichla_frenata
+st joseph,1StB1,leaf_litter,5,Astyanax_bimaculatus
+st joseph,1StB2,pebbles,3,Andinoacara_pulcher
+st joseph,1StB2,pebbles,3,Crenicichla_frenata
+st joseph,1StB3,silt,1,Andinoacara_pulcher
+st joseph,1StB3,silt,1,Crenicichla_frenata
+st joseph,1StB1,leaf_litter,5,Crenicichla_frenata
+st joseph,1StB1,leaf_litter,5,Astyanax_bimaculatus
+st joseph,1StB2,pebbles,3,Andinoacara_pulcher
+st joseph,1StB2,pebbles,3,Crenicichla_frenata
+st joseph,1StB3,silt,1,Andinoacara_pulcher
+st joseph,1StB3,silt,1,Crenicichla_frenata
+lopinot,3LoA1,sand,2,Hoplias_malabaricus
+lopinot,3LoA2,sand,2,Crenicichla_frenata
+lopinot,3LoA3,pebbles,3,Hemibrycon_taeniurus
+lopinot,3LoA2,sand,2,Andinoacara_pulcher
+lopinot,3LoA2,sand,2,Crenicichla_frenata
+lopinot,3LoA3,pebbles,3,Andinoacara_pulcher
+lopinot,3LoA3,pebbles,3,Crenicichla_frenata
+lopinot,3LoA3,pebbles,3,Astyanax_bimaculatus
+lopinot,3LoB1,pebbles,3,Andinoacara_pulcher
+lopinot,3LoB1,pebbles,3,Crenicichla_frenata
+lopinot,3LoB2,leaf_litter,5,Andinoacara_pulcher
+lopinot,3LoB2,leaf_litter,5,Crenicichla_frenata
+lopinot,3LoB3,silt,1,Andinoacara_pulcher
+lopinot,3LoB1,pebbles,3,Andinoacara_pulcher
+lopinot,3LoB1,pebbles,3,Crenicichla_frenata
+lopinot,3LoB2,leaf_litter,5,Andinoacara_pulcher
+lopinot,3LoB2,leaf_litter,5,Crenicichla_frenata
+lopinot,3LoB3,silt,1,Andinoacara_pulcher
+lopinot,3LoC1,leaf_litter,5,Crenicichla_frenata
+lopinot,3LoC1,leaf_litter,5,Andinoacara_pulcher
+lopinot,3LoC2,leaf_litter,5,Andinoacara_pulcher
+lopinot,3LoC2,leaf_litter,5,Crenicichla_frenata
+lopinot,3LoC3,pebbles,3,Andinoacara_pulcher
+lopinot,3LoC3,pebbles,3,Crenicichla_frenata
+caura,2CaC1,rock,4,Andinoacara_pulcher
+caura,2CaC1,rock,4,Crenicichla_frenata
+caura,2CaC2,pebbles,3,Crenicichla_frenata
+caura,2CaC3,leaf_litter,5,Crenicichla_frenata
+caura,2CaC3,leaf_litter,5,Astyanax_bimaculatus
+caura,2CaC1,rock,4,Crenicichla_frenata
+caura,2CaC1,rock,4,Hoplias_malabaricus
+caura,2CaC3,pebbles,3,Crenicichla_frenata
+caura,2CaC3,pebbles,3,Hemibrycon_taeniurus
+caura,2CaC2,leaf_litter,5,Crenicichla_frenata
+caura,2CaB1,pebbles,3,Andinoacara_pulcher
+caura,2CaB1,pebbles,3,Crenicichla_frenata
+caura,2CaB2,pebbles,3,Crenicichla_frenata
+caura,2CaB3,leaf_litter,5,Andinoacara_pulcher
+caura,2CaB1,pebbles,3,Andinoacara_pulcher
+caura,2CaB2,pebbles,3,Crenicichla_frenata
+caura,2CaB3,leaf_litter,5,Andinoacara_pulcher
+caura,2CaA2,pebbles,3,Andinoacara_pulcher
+caura,2CaA3,sand,2,Andinoacara_pulcher
+caura,2CaA1,leaf_litter,5,Crenicichla_frenata
+caura,2CaA1,leaf_litter,5,Hoplias_malabaricus
+caura,2CaA2,pebbles,3,Andinoacara_pulcher
+caura,2CaA3,sand,2,Andinoacara_pulcher
+caura,2CaA3,sand,2,Rhamdia_quelen
+aripo,6ArB1,leaf_litter,5,Anablepsoides_hartii
+aripo,6ArB2,leaf_litter,5,Anablepsoides_hartii
+aripo,6ArB3,pebbles,3,Anablepsoides_hartii
+aripo,6ArB1,leaf_litter,5,Anablepsoides_hartii
+aripo,6ArB2,leaf_litter,5,Anablepsoides_hartii
+aripo,6ArB3,pebbles,3,Anablepsoides_hartii
+aripo,6ArA1,leaf_litter,5,Anablepsoides_hartii
+aripo,6ArA2,leaf_litter,5,Anablepsoides_hartii
+aripo,6ArA3,pebbles,3,Anablepsoides_hartii
+aripo,6ArA1,leaf_litter,5,Anablepsoides_hartii
+aripo,6ArA2,leaf_litter,5,Anablepsoides_hartii
+aripo,6ArA3,pebbles,3,Anablepsoides_hartii
+st joseph,1StC2,leaf_litter,5,Andinoacara_pulcher
+st joseph,1StC2,leaf_litter,5,Astyanax_bimaculatus
+st joseph,1StC3,sand,2,Hemibrycon_taeniurus
+st joseph,1StC2,leaf_litter,5,Crenicichla_frenata
+st joseph,1StC2,leaf_litter,5,Astyanax_bimaculatus
+st joseph,1StC3,sand,2,Andinoacara_pulcher
+st joseph,1StC3,sand,2,Crenicichla_frenata
+st joseph,1StC3,sand,2,Hemibrycon_taeniurus
+st joseph,1StC3,sand,2,Astyanax_bimaculatus
+turure,7TuB1,leaf_litter,5,Andinoacara_pulcher
+turure,7TuB1,leaf_litter,5,Astyanax_bimaculatus
+turure,7TuB2,leaf_litter,5,Andinoacara_pulcher
+turure,7TuB2,leaf_litter,5,Astyanax_bimaculatus
+turure,7TuB3,leaf_litter,5,Andinoacara_pulcher
+turure,7TuB3,leaf_litter,5,Crenicichla_frenata
+turure,7TuB3,leaf_litter,5,Astyanax_bimaculatus
+turure,7TuB3,leaf_litter,5,Roeboides_dientonito
+turure,7TuB1,leaf_litter,5,Andinoacara_pulcher
+turure,7TuB1,leaf_litter,5,Hemibrycon_taeniurus
+turure,7TuB2,leaf_litter,5,Andinoacara_pulcher
+turure,7TuB2,leaf_litter,5,Hemibrycon_taeniurus
+turure,7TuB2,leaf_litter,5,Astyanax_bimaculatus
+turure,7TuB3,leaf_litter,5,Andinoacara_pulcher
+turure,7TuB3,leaf_litter,5,Crenicichla_frenata
+turure,7TuB3,leaf_litter,5,Hemibrycon_taeniurus
+turure,7TuB3,leaf_litter,5,Astyanax_bimaculatus
+turure,7TuB3,leaf_litter,5,Roeboides_dientonito
+aripo,6ArC1,leaf_litter,5,Andinoacara_pulcher
+aripo,6ArC1,leaf_litter,5,Crenicichla_frenata
+aripo,6ArC1,leaf_litter,5,Astyanax_bimaculatus
+aripo,6ArC1,leaf_litter,5,Roeboides_dientonito
+aripo,6ArC2,leaf_litter,5,Andinoacara_pulcher
+aripo,6ArC2,leaf_litter,5,Crenicichla_frenata
+aripo,6ArC2,leaf_litter,5,Astyanax_bimaculatus
+aripo,6ArC2,leaf_litter,5,Roeboides_dientonito
+aripo,6ArC3,pebbles,3,Hemibrycon_taeniurus
+aripo,6ArC1,leaf_litter,5,Andinoacara_pulcher
+aripo,6ArC1,leaf_litter,5,Crenicichla_frenata
+aripo,6ArC1,leaf_litter,5,Hemibrycon_taeniurus
+aripo,6ArC1,leaf_litter,5,Astyanax_bimaculatus
+aripo,6ArC1,leaf_litter,5,Roeboides_dientonito
+aripo,6ArC2,leaf_litter,5,Andinoacara_pulcher
+aripo,6ArC2,leaf_litter,5,Crenicichla_frenata
+aripo,6ArC2,leaf_litter,5,Astyanax_bimaculatus
+aripo,6ArC2,leaf_litter,5,Roeboides_dientonito
+aripo,6ArC3,pebbles,3,Andinoacara_pulcher
+aripo,6ArC3,pebbles,3,Hemibrycon_taeniurus
+aripo,6ArC3,pebbles,3,Astyanax_bimaculatus
+arima,4ArA1,silt,1,Andinoacara_pulcher
+arima,4ArA2,silt,1,Andinoacara_pulcher
+arima,4ArA2,silt,1,Crenicichla_frenata
+arima,4ArA3,silt,1,Andinoacara_pulcher
+arima,4ArA2,silt,1,Andinoacara_pulcher
+arima,4ArA2,silt,1,Crenicichla_frenata
+arima,4ArA3,silt,1,Andinoacara_pulcher
+arima,4ArB1,pebbles,3,Crenicichla_frenata
+arima,4ArB2,pebbles,3,Andinoacara_pulcher
+arima,4ArB2,pebbles,3,Crenicichla_frenata
+arima,4ArB3,pebbles,3,Andinoacara_pulcher
+arima,4ArB3,pebbles,3,Crenicichla_frenata
+arima,4ArB1,pebbles,3,Crenicichla_frenata
+arima,4ArB2,pebbles,3,Andinoacara_pulcher
+arima,4ArB2,pebbles,3,Crenicichla_frenata
+arima,4ArB3,pebbles,3,Andinoacara_pulcher
+arima,4ArB3,pebbles,3,Crenicichla_frenata
+arima,4ArC1,sand,2,Astyanax_bimaculatus
+arima,4ArC3,silt,1,Andinoacara_pulcher
+guanapo,5GuA1,pebbles,3,Andinoacara_pulcher
+guanapo,5GuA1,pebbles,3,Hemibrycon_taeniurus
+guanapo,5GuA1,pebbles,3,Astyanax_bimaculatus
+guanapo,5GuA2,rock,4,Hemibrycon_taeniurus
+guanapo,5GuA2,rock,4,Astyanax_bimaculatus
+guanapo,5GuA1,pebbles,3,Andinoacara_pulcher
+guanapo,5GuA1,pebbles,3,Hemibrycon_taeniurus
+guanapo,5GuA2,rock,4,Hemibrycon_taeniurus
+guanapo,5GuA2,rock,4,Astyanax_bimaculatus
+guanapo,5GuA3,pebbles,3,Andinoacara_pulcher
+guanapo,5GuA3,pebbles,3,Hemibrycon_taeniurus
+guanapo,5GuA3,pebbles,3,Astyanax_bimaculatus
+guanapo,5GuA3,pebbles,3,Andinoacara_pulcher
+guanapo,5GuA3,pebbles,3,Hemibrycon_taeniurus
+aripo,6ArA1,leaf_litter,5,Anablepsoides_hartii
+aripo,6ArA2,leaf_litter,5,Anablepsoides_hartii
+aripo,6ArA3,pebbles,3,Anablepsoides_hartii
+aripo,6ArA1,leaf_litter,5,Anablepsoides_hartii
+aripo,6ArA2,leaf_litter,5,Anablepsoides_hartii
+aripo,6ArA3,pebbles,3,Anablepsoides_hartii
+aripo,6ArB1,leaf_litter,5,Anablepsoides_hartii
+aripo,6ArB2,leaf_litter,5,Anablepsoides_hartii
+aripo,6ArB3,pebbles,3,Anablepsoides_hartii
+aripo,6ArB1,leaf_litter,5,Anablepsoides_hartii
+aripo,6ArB2,leaf_litter,5,Anablepsoides_hartii
+aripo,6ArB3,pebbles,3,Anablepsoides_hartii
+arima,4ArC1,sand,2,Hemibrycon_taeniurus
+turure,7TuB1,leaf_litter,5,Andinoacara_pulcher
+turure,7TuB1,leaf_litter,5,Crenicichla_frenata
+turure,7TuB1,leaf_litter,5,Hemibrycon_taeniurus
+turure,7TuB1,leaf_litter,5,Astyanax_bimaculatus
+turure,7TuB2,leaf_litter,5,Andinoacara_pulcher
+turure,7TuB2,leaf_litter,5,Hemibrycon_taeniurus
+turure,7TuB2,leaf_litter,5,Astyanax_bimaculatus
+turure,7TuB3,leaf_litter,5,Andinoacara_pulcher
+turure,7TuB3,leaf_litter,5,Crenicichla_frenata
+turure,7TuB3,leaf_litter,5,Hemibrycon_taeniurus
+turure,7TuB3,leaf_litter,5,Astyanax_bimaculatus
+turure,7TuB3,leaf_litter,5,Roeboides_dientonito
+turure,7TuB1,leaf_litter,5,Andinoacara_pulcher
+turure,7TuB1,leaf_litter,5,Astyanax_bimaculatus
+turure,7TuB2,leaf_litter,5,Andinoacara_pulcher
+turure,7TuB2,leaf_litter,5,Crenicichla_frenata
+turure,7TuB2,leaf_litter,5,Hemibrycon_taeniurus
+turure,7TuB2,leaf_litter,5,Astyanax_bimaculatus
+turure,7TuB3,leaf_litter,5,Andinoacara_pulcher
+turure,7TuB3,leaf_litter,5,Crenicichla_frenata
+turure,7TuB3,leaf_litter,5,Hemibrycon_taeniurus
+turure,7TuB3,leaf_litter,5,Roeboides_dientonito
+st joseph,1StB1,rock,4,Andinoacara_pulcher
+st joseph,1StB1,rock,4,Crenicichla_frenata
+st joseph,1StB1,rock,4,Astyanax_bimaculatus
+st joseph,1StB2,leaf_litter,5,Andinoacara_pulcher
+st joseph,1StB2,leaf_litter,5,Crenicichla_frenata
+st joseph,1StB2,leaf_litter,5,Astyanax_bimaculatus
+st joseph,1StB3,pebbles,3,Andinoacara_pulcher
+st joseph,1StB3,pebbles,3,Crenicichla_frenata
+st joseph,1StB3,pebbles,3,Astyanax_bimaculatus
+st joseph,1StB1,rock,4,Andinoacara_pulcher
+st joseph,1StB1,rock,4,Crenicichla_frenata
+st joseph,1StB1,rock,4,Astyanax_bimaculatus
+st joseph,1StB2,leaf_litter,5,Andinoacara_pulcher
+st joseph,1StB2,leaf_litter,5,Crenicichla_frenata
+st joseph,1StB2,leaf_litter,5,Astyanax_bimaculatus
+st joseph,1StB2,leaf_litter,5,Rhamdia_quelen
+st joseph,1StB3,pebbles,3,Andinoacara_pulcher
+st joseph,1StB3,pebbles,3,Crenicichla_frenata
+st joseph,1StB3,pebbles,3,Hoplias_malabaricus
+st joseph,1StB3,pebbles,3,Astyanax_bimaculatus
+st joseph,1StA1,silt,1,Andinoacara_pulcher
+st joseph,1StA1,silt,1,Crenicichla_frenata
+st joseph,1StA1,silt,1,Hoplias_malabaricus
+st joseph,1StA1,silt,1,Astyanax_bimaculatus
+st joseph,1StA2,rock,4,Andinoacara_pulcher
+st joseph,1StA2,rock,4,Crenicichla_frenata
+st joseph,1StA2,rock,4,Hoplias_malabaricus
+st joseph,1StA2,rock,4,Astyanax_bimaculatus
+st joseph,1StA3,sand,2,Andinoacara_pulcher
+st joseph,1StA3,sand,2,Crenicichla_frenata
+st joseph,1StA3,sand,2,Astyanax_bimaculatus
+st joseph,1StA3,sand,2,Rhamdia_quelen
+st joseph,1StA1,silt,1,Andinoacara_pulcher
+st joseph,1StA1,silt,1,Crenicichla_frenata
+st joseph,1StA2,rock,4,Andinoacara_pulcher
+st joseph,1StA2,rock,4,Crenicichla_frenata
+st joseph,1StA2,rock,4,Hemibrycon_taeniurus
+st joseph,1StA2,rock,4,Astyanax_bimaculatus
+st joseph,1StA3,sand,2,Andinoacara_pulcher
+st joseph,1StA3,sand,2,Crenicichla_frenata
+st joseph,1StA3,sand,2,Astyanax_bimaculatus
+st joseph,1StA3,sand,2,Rhamdia_quelen
+caura,2CaC1,rock,4,Andinoacara_pulcher
+caura,2CaC1,rock,4,Crenicichla_frenata
+caura,2CaC2,pebbles,3,Andinoacara_pulcher
+caura,2CaC3,leaf_litter,5,Crenicichla_frenata
+caura,2CaC3,leaf_litter,5,Hemibrycon_taeniurus
+caura,2CaC3,leaf_litter,5,Astyanax_bimaculatus
+caura,2CaC1,rock,4,Andinoacara_pulcher
+caura,2CaC1,rock,4,Crenicichla_frenata
+caura,2CaC3,leaf_litter,5,Crenicichla_frenata
+caura,2CaC3,leaf_litter,5,Hemibrycon_taeniurus
+caura,2CaC3,leaf_litter,5,Astyanax_bimaculatus
+lopinot,3LoC1,leaf_litter,5,Andinoacara_pulcher
+lopinot,3LoC1,leaf_litter,5,Crenicichla_frenata
+lopinot,3LoC2,leaf_litter,5,Crenicichla_frenata
+lopinot,3LoC2,leaf_litter,5,Hoplias_malabaricus
+lopinot,3LoC2,leaf_litter,5,Hemibrycon_taeniurus
+lopinot,3LoC3,pebbles,3,Andinoacara_pulcher
+lopinot,3LoC3,pebbles,3,Crenicichla_frenata
+lopinot,3LoC1,leaf_litter,5,Andinoacara_pulcher
+lopinot,3LoC2,leaf_litter,5,Andinoacara_pulcher
+lopinot,3LoC2,leaf_litter,5,Crenicichla_frenata
+lopinot,3LoC2,leaf_litter,5,Hemibrycon_taeniurus
+lopinot,3LoC3,pebbles,3,Crenicichla_frenata
+lopinot,3LoC3,pebbles,3,Hemibrycon_taeniurus
+lopinot,3LoB1,pebbles,3,Andinoacara_pulcher
+lopinot,3LoB1,pebbles,3,Crenicichla_frenata
+lopinot,3LoB2,leaf_litter,5,Andinoacara_pulcher
+lopinot,3LoB3,silt,1,Andinoacara_pulcher
+lopinot,3LoB1,pebbles,3,Andinoacara_pulcher
+lopinot,3LoB1,pebbles,3,Crenicichla_frenata
+lopinot,3LoB2,leaf_litter,5,Andinoacara_pulcher
+lopinot,3LoB2,leaf_litter,5,Crenicichla_frenata
+lopinot,3LoB3,silt,1,Andinoacara_pulcher
+lopinot,3LoB3,silt,1,Crenicichla_frenata
+lopinot,3LoA1,sand,2,Andinoacara_pulcher
+lopinot,3LoA1,sand,2,Crenicichla_frenata
+lopinot,3LoA2,sand,2,Andinoacara_pulcher
+lopinot,3LoA2,sand,2,Crenicichla_frenata
+lopinot,3LoA3,pebbles,3,Andinoacara_pulcher
+lopinot,3LoA3,pebbles,3,Crenicichla_frenata
+lopinot,3LoA3,pebbles,3,Hemibrycon_taeniurus
+lopinot,3LoA3,pebbles,3,Rhamdia_quelen
+lopinot,3LoA3,pebbles,3,Andinoacara_pulcher
+lopinot,3LoA3,pebbles,3,Crenicichla_frenata
+lopinot,3LoA3,pebbles,3,Hemibrycon_taeniurus
+caura,2CaA1,leaf_litter,5,Crenicichla_frenata
+caura,2CaA2,pebbles,3,Andinoacara_pulcher
+caura,2CaA2,pebbles,3,Crenicichla_frenata
+caura,2CaA3,sand,2,Crenicichla_frenata
+caura,2CaA3,sand,2,Rhamdia_quelen
+caura,2CaA1,leaf_litter,5,Crenicichla_frenata
+caura,2CaA3,sand,2,Crenicichla_frenata
+caura,2CaA3,sand,2,Rhamdia_quelen
+caura,2CaB1,pebbles,3,Andinoacara_pulcher
+caura,2CaB1,pebbles,3,Crenicichla_frenata
+caura,2CaB2,pebbles,3,Andinoacara_pulcher
+caura,2CaB2,pebbles,3,Crenicichla_frenata
+caura,2CaB3,leaf_litter,5,Andinoacara_pulcher
+caura,2CaB3,leaf_litter,5,Crenicichla_frenata
+caura,2CaB1,pebbles,3,Andinoacara_pulcher
+caura,2CaB1,pebbles,3,Crenicichla_frenata
+caura,2CaB2,pebbles,3,Andinoacara_pulcher
+caura,2CaB2,pebbles,3,Crenicichla_frenata
+caura,2CaB3,leaf_litter,5,Andinoacara_pulcher
+caura,2CaB3,leaf_litter,5,Crenicichla_frenata
+guanapo,5GuA1,pebbles,3,Andinoacara_pulcher
+guanapo,5GuA1,pebbles,3,Hemibrycon_taeniurus
+guanapo,5GuA1,pebbles,3,Astyanax_bimaculatus
+guanapo,5GuA2,rock,4,Andinoacara_pulcher
+guanapo,5GuA2,rock,4,Hemibrycon_taeniurus
+guanapo,5GuA2,rock,4,Rhamdia_quelen
+guanapo,5GuA3,pebbles,3,Hemibrycon_taeniurus
+guanapo,5GuA3,pebbles,3,Astyanax_bimaculatus
+guanapo,5GuA1,pebbles,3,Andinoacara_pulcher
+guanapo,5GuA1,pebbles,3,Hemibrycon_taeniurus
+guanapo,5GuA1,pebbles,3,Astyanax_bimaculatus
+guanapo,5GuA2,rock,4,Andinoacara_pulcher
+guanapo,5GuA2,rock,4,Hemibrycon_taeniurus
+guanapo,5GuA3,pebbles,3,Andinoacara_pulcher
+guanapo,5GuA3,pebbles,3,Hemibrycon_taeniurus
+guanapo,5GuB1,pebbles,3,Andinoacara_pulcher
+guanapo,5GuB1,pebbles,3,Hemibrycon_taeniurus
+guanapo,5GuB2,pebbles,3,Andinoacara_pulcher
+guanapo,5GuB2,pebbles,3,Hemibrycon_taeniurus
+guanapo,5GuB3,rock,4,Hemibrycon_taeniurus
+guanapo,5GuB3,rock,4,Astyanax_bimaculatus
+guanapo,5GuB1,pebbles,3,Andinoacara_pulcher
+guanapo,5GuB1,pebbles,3,Hemibrycon_taeniurus
+guanapo,5GuB2,pebbles,3,Andinoacara_pulcher
+guanapo,5GuB2,pebbles,3,Hemibrycon_taeniurus
+guanapo,5GuB3,rock,4,Hemibrycon_taeniurus
+guanapo,5GuB3,rock,4,Astyanax_bimaculatus
+turure,7TuA1,sand,2,Hemibrycon_taeniurus
+turure,7TuA2,leaf_litter,5,Hemibrycon_taeniurus
+turure,7TuA2,leaf_litter,5,Anablepsoides_hartii
+turure,7TuA3,silt,1,Hemibrycon_taeniurus
+turure,7TuA1,sand,2,Hemibrycon_taeniurus
+turure,7TuA2,leaf_litter,5,Anablepsoides_hartii
+turure,7TuA3,silt,1,Hemibrycon_taeniurus
+aripo,6ArC1,leaf_litter,5,Andinoacara_pulcher
+aripo,6ArC1,leaf_litter,5,Crenicichla_frenata
+aripo,6ArC1,leaf_litter,5,Hemibrycon_taeniurus
+aripo,6ArC1,leaf_litter,5,Astyanax_bimaculatus
+aripo,6ArC1,leaf_litter,5,Roeboides_dientonito
+aripo,6ArC2,leaf_litter,5,Andinoacara_pulcher
+aripo,6ArC2,leaf_litter,5,Crenicichla_frenata
+aripo,6ArC2,leaf_litter,5,Hemibrycon_taeniurus
+aripo,6ArC2,leaf_litter,5,Astyanax_bimaculatus
+aripo,6ArC2,leaf_litter,5,Roeboides_dientonito
+aripo,6ArC3,pebbles,3,Crenicichla_frenata
+aripo,6ArC3,pebbles,3,Hemibrycon_taeniurus
+aripo,6ArC3,pebbles,3,Roeboides_dientonito
+aripo,6ArC1,leaf_litter,5,Andinoacara_pulcher
+aripo,6ArC1,leaf_litter,5,Crenicichla_frenata
+aripo,6ArC1,leaf_litter,5,Hemibrycon_taeniurus
+aripo,6ArC1,leaf_litter,5,Roeboides_dientonito
+aripo,6ArC2,leaf_litter,5,Andinoacara_pulcher
+aripo,6ArC2,leaf_litter,5,Crenicichla_frenata
+aripo,6ArC2,leaf_litter,5,Hoplias_malabaricus
+aripo,6ArC2,leaf_litter,5,Hemibrycon_taeniurus
+aripo,6ArC2,leaf_litter,5,Astyanax_bimaculatus
+aripo,6ArC2,leaf_litter,5,Roeboides_dientonito
+aripo,6ArC3,pebbles,3,Andinoacara_pulcher
+aripo,6ArC3,pebbles,3,Crenicichla_frenata
+aripo,6ArC3,pebbles,3,Hoplias_malabaricus
+aripo,6ArC3,pebbles,3,Hemibrycon_taeniurus
+aripo,6ArC3,pebbles,3,Roeboides_dientonito
+st joseph,1StC1,rock,4,Andinoacara_pulcher
+st joseph,1StC1,rock,4,Crenicichla_frenata
+st joseph,1StC1,rock,4,Astyanax_bimaculatus
+st joseph,1StC2,leaf_litter,5,Andinoacara_pulcher
+st joseph,1StC2,leaf_litter,5,Hemibrycon_taeniurus
+st joseph,1StC2,leaf_litter,5,Astyanax_bimaculatus
+st joseph,1StC3,sand,2,Andinoacara_pulcher
+st joseph,1StC3,sand,2,Hemibrycon_taeniurus
+st joseph,1StC1,rock,4,Andinoacara_pulcher
+st joseph,1StC1,rock,4,Crenicichla_frenata
+st joseph,1StC2,leaf_litter,5,Andinoacara_pulcher
+st joseph,1StC2,leaf_litter,5,Crenicichla_frenata
+st joseph,1StC2,leaf_litter,5,Hemibrycon_taeniurus
+st joseph,1StC2,leaf_litter,5,Astyanax_bimaculatus
+st joseph,1StC3,sand,2,Andinoacara_pulcher
+st joseph,1StC3,sand,2,Hemibrycon_taeniurus
+arima,4ArB1,pebbles,3,Andinoacara_pulcher
+arima,4ArB1,pebbles,3,Crenicichla_frenata
+arima,4ArB2,pebbles,3,Andinoacara_pulcher
+arima,4ArB2,pebbles,3,Crenicichla_frenata
+arima,4ArB3,pebbles,3,Andinoacara_pulcher
+arima,4ArB3,pebbles,3,Crenicichla_frenata
+arima,4ArB1,pebbles,3,Andinoacara_pulcher
+arima,4ArB1,pebbles,3,Crenicichla_frenata
+arima,4ArB2,pebbles,3,Andinoacara_pulcher
+arima,4ArB2,pebbles,3,Crenicichla_frenata
+arima,4ArB3,pebbles,3,Andinoacara_pulcher
+arima,4ArB3,pebbles,3,Crenicichla_frenata
+arima,4ArA1,silt,1,Andinoacara_pulcher
+arima,4ArA1,silt,1,Crenicichla_frenata
+arima,4ArA2,silt,1,Crenicichla_frenata
+arima,4ArA3,silt,1,Andinoacara_pulcher
+arima,4ArA1,silt,1,Andinoacara_pulcher
+arima,4ArA1,silt,1,Crenicichla_frenata
+arima,4ArA3,silt,1,Andinoacara_pulcher
+arima,4ArA3,silt,1,Crenicichla_frenata
